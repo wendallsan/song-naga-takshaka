@@ -24,4 +24,4 @@ Design Concept Illustration
   -  **LFO Waveform Select** (press MODE + adjust LFO Rate knob.  Options are sine, tri, ramp, saw, square and random.)
 
 ### About the Supersaw Oscillator  
-The Supersaw Oscillator used in **Takshaka** is based on the thesis ("How to Emulate the Super Saw")[https://forum.orthogonaldevices.com/uploads/short-url/rLjREzRcZvvK2527rFnTGvuwY1b.pdf] written by Adam Szabo in 2010.
+The Supersaw Oscillator used in **Takshaka** is based on the thesis ["How to Emulate the Super Saw"](https://forum.orthogonaldevices.com/uploads/short-url/rLjREzRcZvvK2527rFnTGvuwY1b.pdf) written by Adam Szabo in 2010.
