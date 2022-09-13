@@ -3,7 +3,10 @@
 ### Supersaw desktop synthesizer by Song Naga
 
 This project is powered by the [Electro-smith Daisy Seed](https://www.electro-smith.com/daisy/daisy) and the [Simple synthesizer design platform](https://www.synthux.academy/simple).
-![Design Concept](https://user-images.githubusercontent.com/1865305/189991192-ca00ab04-4045-4d62-9642-9f78877c540c.png)
+
+![![Design Concept](https://user-images.githubusercontent.com/1865305/189998336-67b35a16-b98b-4eb1-af50-6c7474c84edb.png)  
+](https://user-images.githubusercontent.com/1865305/189999768-1a76bce1-aeea-448f-9aaa-896bad5629b4.png)
+
 Design Concept Illustration
 
 ## Planned Features
@@ -17,10 +20,11 @@ Design Concept Illustration
 - Both the Amp and Mod Envelopes are controlled by a shared Gate Input, and can be retriggered using the Trigger Input.
 - **LFO** with **Rate** control can modulate Drift, Intensity, Cutoff, or Amp
 - **MIDI Control** of all parameters via USB or MIDI input.  As an added bonus, Takshaka can operate as a polyphonic 4-voice synthesizer when controlled by MIDI. 
-- **Mode Button** provides access to additional controls:  
+- **Mode Button** provides access to additional controls while pressed:  
   -  **Suboscillator Waveform Select** (press MODE + adjust Super Sub knob.  Options are sine, square, tri.)
-  -  **Filter Type Select** (pres MODE + adjust Filter Cutoff knob.  Options are 24db LPF, 18db LPF, 12db LPF, 12db HPF, and notch.)
-  -  **Drive Type Select** (press MODE + adjust Filter Drive knob.  Options are ___.)
+  -  **Filter Type Select** (pres MODE + adjust Filter Cutoff knob.  Options are LPF, HPF, AND BPF.)
+  -  **Filter Poles** (press MODE + adjust Filter Res knob.  Options are 1, 2, 3, and 4.)
+  -  **Drive Type Select** (press MODE + adjust Filter Drive knob.  Options are A, B, and C.)
   -  **LFO Waveform Select** (press MODE + adjust LFO Rate knob.  Options are sine, tri, ramp, saw, square and random.)
 
 ### About the Supersaw Oscillator  
