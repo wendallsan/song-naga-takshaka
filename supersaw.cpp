@@ -10,6 +10,10 @@
 #define AMP_AMOUNTS { 0.4, 0.4, 0.4, 0.4, 0.5, 0.5, 0.45 }
 using namespace daisy;
 using namespace daisysp;
+/* 
+IMPLEMENTED USING DETAILS FROM:
+https://forum.orthogonaldevices.com/uploads/short-url/rLjREzRcZvvK2527rFnTGvuwY1b.pdf
+*/
 DaisySeed hw;
 Oscillator superSaws[ NUMBER_OF_SAWS ];
 ATone hpf;
@@ -47,10 +51,11 @@ int main(){
 	for( int i = 0; i < NUMBER_OF_SAWS; i++ ){
 		superSaws[ i ].Init( SAMPLE_RATE );
 		superSaws[ i ].SetWaveform( superSaws[ i ].WAVE_POLYBLEP_SAW );
-		float randy = rand() / RAND_MAX; // RANDOMIZE PHASE
-		// SAVE FOR LATER USAGE-- WE'LL EVENTUALLY WANT TO CHANGE PHASE WITH EACH NEW NOTE USING PhaseAdd()
-		phases[ i ] = randy;
-		superSaws[ i ].PhaseAdd( randy );
+		// RANDOMIZE PHASE AND SAVE FOR LATER USAGE-- 
+		// WE'LL EVENTUALLY WANT TO CHANGE PHASE WITH EACH NEW NOTE USING PhaseAdd()
+		// AND IT HELPS TO KNOW THE CURRENT PHASE TO DO THAT
+		phases[ i ] = rand() / RAND_MAX;
+		superSaws[ i ].PhaseAdd( phases[ i ] );
 	}
     hpf.Init( SAMPLE_RATE );
 	float hpfFreq = ROOT_FREQ;
