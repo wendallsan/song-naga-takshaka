@@ -1,8 +1,8 @@
 # Project Name
-TARGET = supersaw
+TARGET = takshaka
 
 # Sources
-CPP_SOURCES = supersaw.cpp
+CPP_SOURCES = takshaka.cpp SuperSawOsc.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../../libDaisy/
