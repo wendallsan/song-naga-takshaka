@@ -42,7 +42,8 @@ float driftKnobValue,
 	howlKnobValue,
 	cutoffValue,
 	filterModeValue,
-	resKnobValue,
+	resValue,
+	polesValue,
 	driveKnobValue,
 	midiFreq,
 	attackKnobValue,
@@ -63,7 +64,8 @@ DaisySeed hw;
 MidiUsbHandler midi;
 Switch modeSwitch;
 SmartKnob growlSmartKnob,
-	howlSmartKnob;
+	howlSmartKnob,
+	resSmartKnob;
 SuperSawOsc superSaw;
 Oscillator subOsc, lfo;
 Svf filter1, filter2;
@@ -85,6 +87,7 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		cutoffMod += cutoffValue;
 		float filterFreq = fmap( cutoffMod, 1.0, fclamp( midiFreq * 16.0, 20.0, 20000.0 ) );
 		filter1.SetFreq( filterFreq );
+		filter2.SetFreq( filterFreq );
 		float filteredSignal = 0.0;
 		// FIRST PASS THROUGH THE FILTERS
 		filter1.Process( mixedSignal );
@@ -103,22 +106,27 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 			case FILTER_MODE_COMB:
 				filteredSignal = combSignal;
 				break;
-		}		
-		// SECOND PASS THROUGH THE FILTERS
-		// if( filterSetting == LP2 || filterSetting == HP2 || filterSetting == BP2 ){
-		// 	filter2.Process( filteredSignal );
-		// 	switch( filterSetting ){
-		// 		case LP2:
-		// 			filteredSignal = filter2.Low();
-		// 			break;
-		// 		case HP2:			
-		// 			filteredSignal = filter2.High();
-		// 			break;
-		// 		case BP2:
-		// 			filteredSignal = filter2.Band();
-		// 	}	
-		// }	
-
+		}
+		if( polesValue > 0.5 &&
+			(
+				currentFilterMode == FILTER_MODE_LP ||
+				currentFilterMode == FILTER_MODE_HP ||
+				currentFilterMode == FILTER_MODE_BP
+			)
+		){
+			filter2.Process( filteredSignal );
+			switch( currentFilterMode ){
+				case FILTER_MODE_LP:
+					filteredSignal = filter2.Low();
+					break;
+				case FILTER_MODE_HP:
+					filteredSignal = filter2.High();
+					break;
+				case FILTER_MODE_BP:
+					filteredSignal = filter2.Band();
+					break;
+			}
+		}
 		// FOR NOW AMP MOD AMOUNT IS FIXED
 		// float ampMod = ampEnv.Process( envGate ) * 0.5;
 		float ampMod = ampEnv.Process( envGate );
@@ -147,11 +155,13 @@ void handleKnobs(){
 	howlSmartKnob.Update( 1.0 - hw.adc.GetFloat( howlKnob ) );
 	cutoffValue = howlSmartKnob.GetValueModeA();
 	filterModeValue = howlSmartKnob.GetValueModeB();
+	resSmartKnob.Update( 1.0 - hw.adc.GetFloat( resKnob ) );
+	resValue = resSmartKnob.GetValueModeA();
+	polesValue = resSmartKnob.GetValueModeB();
 
 	// HANDLE THE SINGLE-MODE KNOBS
 	driftKnobValue = 1.0 - hw.adc.GetFloat( driftKnob );
 	shiftKnobValue = 1.0 - hw.adc.GetFloat( shiftKnob );
-	resKnobValue = 1.0 - hw.adc.GetFloat( resKnob );
 	driveKnobValue = 1.0 - hw.adc.GetFloat( driveKnob );
 	attackKnobValue = 1.0 - hw.adc.GetFloat( attackKnob );
 	sustainKnobValue = 1.0 - hw.adc.GetFloat( sustainKnob );
@@ -237,10 +247,11 @@ int main(){
 		subOsc.SetFreq( midiFreq / ( subOscOctave + 1 ) );
 		modeSwitch.Debounce();
 		operationMode = !modeSwitch.Pressed();
-		// IF THE OPERATING MODE CHANGED, CHANGE MODE ON THE SMART KNOB
+		// IF THE OPERATING MODE CHANGED, CHANGE MODE ON THE SMART KNOBS
 		if( operationMode != lastOperationMode ) {
 			growlSmartKnob.SetMode( operationMode );
 			howlSmartKnob.SetMode( operationMode );
+			resSmartKnob.SetMode( operationMode );
 		}
 		lastOperationMode = operationMode;
 		handleKnobs();
@@ -249,11 +260,13 @@ int main(){
 		superSaw.SetDrift( driftKnobValue );
 		superSaw.SetShift( shiftKnobValue );
 
-		filter1.SetRes( fmap( resKnobValue, 0.0, 0.8 ) );
+		filter1.SetRes( fmap( resValue, 0.0, 0.85 ) );
 		filter1.SetDrive( driveKnobValue );
+		filter2.SetRes( fmap( resValue, 0.0, 0.85 ) );
+		filter2.SetDrive( driveKnobValue );
 		
 		combFilter.SetFreq( fmap( cutoffValue, midiFreq, fclamp( midiFreq * 2.0, 20.0, 20000.0 ) ) );
-		combFilter.SetRevTime( fmap( resKnobValue, 0.0, 1.0 ) );
+		combFilter.SetRevTime( fmap( resValue, 0.0, 1.0 ) );
 
 		pounce.SetAttackTime( fmap( attackKnobValue, 0.005, 4.0 ) );
 		pounce.SetSustainLevel( sustainKnobValue );
