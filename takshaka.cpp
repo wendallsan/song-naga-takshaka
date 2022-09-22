@@ -1,6 +1,7 @@
 #include "daisy_seed.h"
 #include "daisysp.h"
 #include "SuperSawOsc.h"
+#include "SmartKnob.h"
 #define ROOT_MIDI_NOTE 48
 #define SAMPLE_RATE 48000.0
 using namespace daisy;
@@ -43,6 +44,7 @@ enum operationModes {
 DaisySeed hw;
 MidiUsbHandler midi;
 Switch modeSwitch;
+SmartKnob subSmartKnob;
 float driftKnobValue,
 	shiftKnobValue,
 	subMixKnobValue,
@@ -55,13 +57,7 @@ float driftKnobValue,
 	sustainKnobValue,
 	decayReleaseKnobValue,
 	clawsKnobValue,
-	currentSubMixKnobInterpolationValue = 2.0,
-	lastSubMixKnobValue = 0.0,
-	subTypeKnobValue = 0.0,
-	lastSubTypeKnobValue = 0.0,
-	lastSubMixKnobValueAtModeChange = 0.0, // THIS STORES THE LAST VALUE OF THIS KNOB AT MODE CHANGE
-	lastSubTypeKnobValueAtModeChange = 0.0,
-	lastSubKnobValueAtModeChange = 0.0;
+	subTypeKnobValue = 0.0;
 int detuneKnobCurveIndex, 
 	intensityKnobCurveIndex, 
 	subOscOctave = 1,
@@ -70,9 +66,7 @@ int detuneKnobCurveIndex,
 bool debugMode = true,
 	operationMode = OP_MODE_NORMAL,
 	lastOperationMode = OP_MODE_NORMAL,
-	envGate = false,
-	normalInterpolates[ 1 ] = { false }, // STORES WHETHER NORMAL KNOBS ARE CURRENTLY INTERPOLATING
-	altInterpolates[ 1 ] = { false }; // STORES WHETHER ALT KNOBS ARE CURRENTLY INTERPOLATING
+	envGate = false;
 // TODO: SUBOSC OCTAVE IS SET VIA MENU, YET TO BE IMPLEPMENTED
 SuperSawOsc superSaw;
 Oscillator subOsc, lfo;
@@ -147,57 +141,13 @@ void handleMidi(){
 		} else if( midiEvent.type == NoteOff ) envGate = false;
 	}
 }
-// RETURNS TRUE WHEN A AND BE ARE CLOSE TOGETHER
-bool fcompare( float a, float b, float epsilon = 0.01 ) {
-  return fabs( a - b ) <= epsilon;
-}
-void handleSubKnob(){
-	float currentSubKnobValue = 1.0 - hw.adc.GetFloat( subKnob );
-	if( operationMode != lastOperationMode ){ // IF WE JUST SWITCHED BETWEEN MODES ...
-		if( operationMode == OP_MODE_NORMAL ){ // IF WE JUST SWITCHED INTO NORMAL MODE ...
-			normalInterpolates[ 0 ] = true;
-			lastSubTypeKnobValue = 
-				lastSubKnobValueAtModeChange = 
-				lastSubTypeKnobValueAtModeChange = 
-				currentSubKnobValue;
-		} else { // ELSE WE JUST SWITCHED INTO ALT MODE
-			lastSubMixKnobValueAtModeChange = currentSubKnobValue;
-			altInterpolates[ 0 ] = true;
-			lastSubMixKnobValue = 
-				lastSubKnobValueAtModeChange  = 
-				lastSubMixKnobValueAtModeChange = 
-				currentSubKnobValue;
-		}			
-	}
-	// HANDLE DUAL-MODE KNOB
-	if( operationMode == OP_MODE_NORMAL ){ // IF WE ARE IN NORMAL MODE ...
-		if( normalInterpolates[ 0 ] ){ // IF THE SUB KNOB IS INTERPOLATING ...
-			float currentSubMixKnobValue = currentSubKnobValue;
 
-			// DID THE CURRENT KNOB VALUE CHANGE FROM WHERE IT WAS WHEN THE MODE WAS LAST CHANGED?
-			if( !fcompare( currentSubMixKnobValue, lastSubKnobValueAtModeChange ) ){
-				// IF CURRENT SUB KNOB INTERPOLATION VALUE IS NOT VALID (AKA IN A RANGE BETWEEN 0.0 AND 1.0),
-				//  THIS IS OUR FIRST PASS AT INTERPOLATION. SET IT TO THE LAST SUBMIX KNOB VALUE
-				if( currentSubMixKnobInterpolationValue < 0.0 || currentSubMixKnobInterpolationValue > 1.0 )
-					currentSubMixKnobInterpolationValue = lastSubMixKnobValue;				
-				// MOVE FROM THE SAVED VALUE TOWARDS THE CURRENT KNOB POSITION
-				if( currentSubMixKnobInterpolationValue < currentSubKnobValue ) 
-					currentSubMixKnobInterpolationValue += 0.0002;
-				else currentSubMixKnobInterpolationValue -= 0.0002;				
-				// IF INTERPOLATE VALUE MATCHES THE CURRENT KNOB VALUE...
-				if( fcompare( currentSubMixKnobInterpolationValue, currentSubKnobValue, 0.002 ) ){
-					// TURN OFF INTERPOLATE
-					normalInterpolates[ 0 ] = false;
-					// SET INTERPOLATE VALUE TO AN INVALID STATE FOR NEXT TIME
-					currentSubMixKnobInterpolationValue = 2.0;
-					subMixKnobValue = currentSubKnobValue;
-				} else subMixKnobValue = currentSubMixKnobInterpolationValue;				
-			} else subMixKnobValue = lastSubMixKnobValueAtModeChange;
-		} else subMixKnobValue = lastSubMixKnobValue = currentSubKnobValue;
-	} else subTypeKnobValue = lastSubTypeKnobValue = currentSubKnobValue;
-}
 void handleKnobs(){
-	handleSubKnob(); // HANDLE SUB KNOB, WHICH HAS 2 MODES
+	// HANDLE THE SMART KNOB
+	subSmartKnob.Update( 1.0 - hw.adc.GetFloat( subKnob ) );
+	subMixKnobValue = subSmartKnob.GetValueModeA();
+	subTypeKnobValue = subSmartKnob.GetValueModeB();
+
 	// HANDLE THE SINGLE-MODE KNOBS
 	driftKnobValue = 1.0 - hw.adc.GetFloat( driftKnob );
 	shiftKnobValue = 1.0 - hw.adc.GetFloat( shiftKnob );
@@ -285,8 +235,10 @@ int main(){
 		subOsc.SetFreq( midiFreq / ( subOscOctave + 1 ) );
 		modeSwitch.Debounce();
 		operationMode = !modeSwitch.Pressed();
+		// IF THE OPERATING MODE CHANGED, CHANGE MODE ON THE SMART KNOB
+		if( operationMode != lastOperationMode ) subSmartKnob.SetMode( operationMode );
+		lastOperationMode = operationMode;
 		handleKnobs();
-		lastOperationMode = operationMode; // UPDATE lastOperationMode
 		
 		// DO STUFF
 		superSaw.SetDrift( driftKnobValue );
@@ -311,18 +263,7 @@ int main(){
 		hw.SetLed( !operationMode );
 		if( debugMode ){
 			debugCount++;
-			if( debugCount >= 1000  ){
-				hw.Print( operationMode? ". " : "! " );
-				hw.Print( normalInterpolates[ 0 ]? "n! " : "n. " );
-				// hw.Print( altInterpolates[ 0 ]? "a! " : "a. " );
-				// hw.Print( "type: " );
-				// hw.Print( FLT_FMT3, FLT_VAR3( subTypeKnobValue ) );
-				hw.Print( " MIX: " );
-				hw.Print( FLT_FMT3, FLT_VAR3( subMixKnobValue ) );
-				hw.Print( ", KNOB: " );
-				hw.Print( FLT_FMT3, FLT_VAR3( 1.0 - hw.adc.GetFloat( subKnob ) ) );
-				hw.Print( ", I: " );
-				hw.PrintLine( FLT_FMT3, FLT_VAR3( currentSubMixKnobInterpolationValue ) );
+			if( debugCount >= 100  ){			
 				debugCount = 0;
 			}
 		}

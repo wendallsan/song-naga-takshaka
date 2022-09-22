@@ -2,7 +2,7 @@
 TARGET = takshaka
 
 # Sources
-CPP_SOURCES = takshaka.cpp SuperSawOsc.cpp
+CPP_SOURCES = takshaka.cpp SuperSawOsc.cpp SmartKnob.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../../libDaisy/
