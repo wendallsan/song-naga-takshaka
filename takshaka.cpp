@@ -13,12 +13,19 @@ enum AdcChannel {
 	resKnob,
 	// filterModesKnob, // TODO: FOR NOW WE'LL CONTROL FILTER SETTINGS WITH A KNOB RATHER THAN TOUCHPLATES
 	driveKnob,
+	attackKnob,
+	sustainKnob,
+	decayReleaseKnob,
+	clawsKnob,
 	ADC_CHANNELS_COUNT 
 };
 enum SubOscWaveforms {
-	SUBOSC_SINE,
-	SUBOSC_TRI,
-	SUBOSC_SQUARE,
+	SUBOSC_SINE_1,
+	SUBOSC_SINE_2,
+	SUBOSC_TRI_1,
+	SUBOSC_TRI_2,
+	SUBOSC_SQUARE_1,
+	SUBOSC_SQUARE_2,
 	SUBOSC_WAVEFORMS_COUNT
 };
 enum FilterModes {
@@ -43,6 +50,11 @@ float driftKnobValue,
 	resKnobValue,
 	filterSettingsKnobValue,
 	driveKnobValue,
+	midiFreq,
+	attackKnobValue,
+	sustainKnobValue,
+	decayReleaseKnobValue,
+	clawsKnobValue,
 	lastSubMixKnobValue = 0.0,
 	subTypeKnobValue = 0.0,
 	lastSubTypeKnobValue = 0.0,
@@ -57,12 +69,14 @@ int detuneKnobCurveIndex,
 bool debugMode = false,
 	operationMode = OP_MODE_NORMAL,
 	lastOperationMode = OP_MODE_NORMAL,
+	envGate = false,
 	normalInterpolates[ 1 ] = { false }, // STORES WHETHER NORMAL KNOBS ARE CURRENTLY INTERPOLATING
 	altInterpolates[ 1 ] = { false }; // STORES WHETHER ALT KNOBS ARE CURRENTLY INTERPOLATING
 // TODO: SUBOSC OCTAVE IS SET VIA MENU, YET TO BE IMPLEPMENTED
 SuperSawOsc superSaw;
 Oscillator subOsc, lfo;
 Svf filter1, filter2;
+Adsr pounce, ampEnv;
 // FILTER SETTINGS KNOB: LP1, LP2, HP1, HP2, BP1, BP2 (?)
 void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){
 	for( size_t i = 0; i < size; i++ ){
@@ -74,6 +88,13 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 
 		float lfoSignal = lfo.Process();
 		
+		// FOR NOW, JUST USE POUNCE TO MODULATE THE FILTER ENVELOPE
+		// FOR NOW MODULATION AMOUNT IS FIXED
+		float cutoffMod = pounce.Process( envGate ) * 0.5;
+		cutoffMod += cutoffKnobValue;
+		float filterFreq = fmap( cutoffMod, 1.0, fclamp( midiFreq * 16.0, 20.0, 20000.0 ) );
+		filter1.SetFreq( filterFreq );
+
 		float filteredSignal = 0.0;
 		// FIRST PASS THROUGH THE FILTERS
 		filter1.Process( mixedSignal );
@@ -104,7 +125,12 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		// 			filteredSignal = filter2.Band();
 		// 	}	
 		// }	
-		out[0][i] = out[1][i] = filteredSignal;
+
+		// FOR NOW AMP MOD AMOUNT IS FIXED
+		// float ampMod = ampEnv.Process( envGate ) * 0.5;
+		float ampMod = ampEnv.Process( envGate );
+		ampMod += clawsKnobValue;
+		out[0][i] = out[1][i] = filteredSignal * ampMod;
 	}
 }
 void handleMidi(){
@@ -113,8 +139,11 @@ void handleMidi(){
 		auto midiEvent = midi.PopEvent();
 		if( midiEvent.type == NoteOn ){
 			auto noteMessage = midiEvent.AsNoteOn();
-			if( noteMessage.velocity != 0 ) midiNote = noteMessage.note;
-		}
+			if( noteMessage.velocity != 0 ){
+				midiNote = noteMessage.note;
+				envGate = true;
+			} else envGate = false;
+		} else if( midiEvent.type == NoteOff ) envGate = false;
 	}
 }
 void handleSubKnob(){
@@ -164,19 +193,47 @@ void handleSubKnob(){
 		} else subMixKnobValue = lastSubMixKnobValue = 1.0 - hw.adc.GetFloat( subKnob );
 	} else subTypeKnobValue = lastSubTypeKnobValue = 1.0 - hw.adc.GetFloat( subKnob );
 }
-
+void handleKnobs(){
+	handleSubKnob(); // HANDLE SUB KNOB, WHICH HAS 2 MODES
+	// HANDLE THE SINGLE-MODE KNOBS
+	driftKnobValue = 1.0 - hw.adc.GetFloat( driftKnob );
+	shiftKnobValue = 1.0 - hw.adc.GetFloat( shiftKnob );
+	cutoffKnobValue = 1.0 - hw.adc.GetFloat( cutoffKnob );
+	resKnobValue = 1.0 - hw.adc.GetFloat( resKnob );
+	// filterSettingsKnobValue = hw.adc.GetFloat( filterSettingsKnob );
+	driveKnobValue = 1.0 - hw.adc.GetFloat( driveKnob );
+	attackKnobValue = 1.0 - hw.adc.GetFloat( attackKnob );
+	sustainKnobValue = 1.0 - hw.adc.GetFloat( sustainKnob );
+	decayReleaseKnobValue = 1.0 - hw.adc.GetFloat( decayReleaseKnob );
+	clawsKnobValue = 1.0 - hw.adc.GetFloat( clawsKnob );
+}
 void handleSubOscWave(){
-	// SUBWAVE HAS 3 MODES
+	// SUBWAVE HAS 6 MODES
 	int subWave = subTypeKnobValue * SUBOSC_WAVEFORMS_COUNT ;  // int range 0 - 2
 	switch( subWave ){
 		case 0:
 			subOsc.SetWaveform( subOsc.WAVE_SIN );
+			subOscOctave = 1;
 			break;
 		case 1:
-			subOsc.SetWaveform( subOsc.WAVE_POLYBLEP_TRI );
+			subOsc.SetWaveform( subOsc.WAVE_SIN );
+			subOscOctave = 2;
 			break;
 		case 2:
+			subOsc.SetWaveform( subOsc.WAVE_POLYBLEP_TRI );
+			subOscOctave = 1;
+			break;
+		case 3:
+			subOsc.SetWaveform( subOsc.WAVE_POLYBLEP_TRI );
+			subOscOctave = 2;
+			break;
+		case 4:
 			subOsc.SetWaveform( subOsc.WAVE_POLYBLEP_SQUARE );
+			subOscOctave = 1;
+			break;
+		case 5:
+			subOsc.SetWaveform( subOsc.WAVE_POLYBLEP_SQUARE );
+			subOscOctave = 2;
 	}
 }
 void initADC(){
@@ -187,6 +244,10 @@ void initADC(){
     adcConfig[ cutoffKnob ].InitSingle( daisy::seed::A3 );
     adcConfig[ resKnob ].InitSingle( daisy::seed::A4 );
     adcConfig[ driveKnob ].InitSingle( daisy::seed::A5 );
+    adcConfig[ attackKnob ].InitSingle( daisy::seed::A6 );
+    adcConfig[ sustainKnob ].InitSingle( daisy::seed::A7 );
+    adcConfig[ decayReleaseKnob ].InitSingle( daisy::seed::A8 );
+    adcConfig[ clawsKnob ].InitSingle( daisy::seed::A9 );
 	hw.adc.Init( adcConfig, ADC_CHANNELS_COUNT );
     hw.adc.Start();
 }
@@ -203,6 +264,8 @@ int main(){
 	subOsc.Init( SAMPLE_RATE );
 	filter1.Init( SAMPLE_RATE );
 	filter2.Init( SAMPLE_RATE );
+	pounce.Init( SAMPLE_RATE );
+	ampEnv.Init( SAMPLE_RATE );
 	// lfo.Init( SAMPLE_RATE );
 	// lfo.SetWaveform( lfo.WAVE_SIN );
 	// lfo.SetFreq( 1.0 );
@@ -214,30 +277,35 @@ int main(){
 	while( true ){
 		if( !debugMode ) handleMidi();
 		else midiNote = ROOT_MIDI_NOTE;
-		float midiFreq = mtof( midiNote );
+		midiFreq = mtof( midiNote );
 		superSaw.SetFreq( midiFreq );
 		subOsc.SetFreq( midiFreq / ( subOscOctave + 1 ) );
 		modeSwitch.Debounce();
-		operationMode = modeSwitch.Pressed();
-		handleSubKnob(); // HANDLE SUB KNOB, WHICH HAS 2 MODES
+		operationMode = !modeSwitch.Pressed();
+		handleKnobs();
 		lastOperationMode = operationMode; // UPDATE lastOperationMode
-		// HANDLE THE SINGLE-MODE KNOBS
-		driftKnobValue = 1.0 - hw.adc.GetFloat( driftKnob );
-		shiftKnobValue = 1.0 - hw.adc.GetFloat( shiftKnob );
-		cutoffKnobValue = 1.0 - hw.adc.GetFloat( cutoffKnob );
-		resKnobValue = 1.0 - hw.adc.GetFloat( resKnob );
-		// filterSettingsKnobValue = hw.adc.GetFloat( filterSettingsKnob );
-		driveKnobValue = 1.0 - hw.adc.GetFloat( driveKnob );
-
-		// SET STUFF
+		
+		// DO STUFF
 		superSaw.SetDrift( driftKnobValue );
 		superSaw.SetShift( shiftKnobValue );
-		filter1.SetFreq( fmap( cutoffKnobValue, 1.0, fclamp( midiFreq * 16.0, 20.0, 20000.0 ) ) );
 		filter1.SetRes( fmap( resKnobValue, 0.0, 0.8 ) );
 		filter1.SetDrive( driveKnobValue );
 
-		handleSubOscWave();
+		pounce.SetAttackTime( fmap( attackKnobValue, 0.005, 4.0 ) );
+		pounce.SetSustainLevel( sustainKnobValue );
+		pounce.SetDecayTime( fmap( decayReleaseKnobValue, 0.005, 4.0 ) );
+		pounce.SetReleaseTime( fmap( decayReleaseKnobValue, 0.005, 4.0 ) );
 
+		// TODO: GIVE AMPENV ITS OWN SETTINGS VIA ALT MODE
+		// FOR NOW: SET AMPENV TO SAME SETTINGS AS POUNCE
+		ampEnv.SetAttackTime( fmap( attackKnobValue, 0.005, 4.0 ) );
+		ampEnv.SetSustainLevel( sustainKnobValue );
+		ampEnv.SetDecayTime( fmap( decayReleaseKnobValue, 0.005, 4.0 ) );
+		ampEnv.SetReleaseTime( fmap( decayReleaseKnobValue, 0.005, 4.0 ) );
+
+		handleSubOscWave();
+		// LIGHT THE LED WHEN IN ALT MODE
+		hw.SetLed( !operationMode );
 		if( debugMode ){
 			debugCount++;
 			if( debugCount >= 10 ){
