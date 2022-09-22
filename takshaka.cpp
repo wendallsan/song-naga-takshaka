@@ -55,6 +55,7 @@ float driftKnobValue,
 	sustainKnobValue,
 	decayReleaseKnobValue,
 	clawsKnobValue,
+	currentSubMixKnobInterpolationValue = 2.0,
 	lastSubMixKnobValue = 0.0,
 	subTypeKnobValue = 0.0,
 	lastSubTypeKnobValue = 0.0,
@@ -66,7 +67,7 @@ int detuneKnobCurveIndex,
 	subOscOctave = 1,
 	filterSetting = LP1,
 	midiNote = ROOT_MIDI_NOTE;
-bool debugMode = false,
+bool debugMode = true,
 	operationMode = OP_MODE_NORMAL,
 	lastOperationMode = OP_MODE_NORMAL,
 	envGate = false,
@@ -146,6 +147,10 @@ void handleMidi(){
 		} else if( midiEvent.type == NoteOff ) envGate = false;
 	}
 }
+// RETURNS TRUE WHEN A AND BE ARE CLOSE TOGETHER
+bool fcompare( float a, float b, float epsilon = 0.01 ) {
+  return fabs( a - b ) <= epsilon;
+}
 void handleSubKnob(){
 	float currentSubKnobValue = 1.0 - hw.adc.GetFloat( subKnob );
 	if( operationMode != lastOperationMode ){ // IF WE JUST SWITCHED BETWEEN MODES ...
@@ -164,34 +169,32 @@ void handleSubKnob(){
 				currentSubKnobValue;
 		}			
 	}
-	// HANDLE DUAL-MODE KNOBS
+	// HANDLE DUAL-MODE KNOB
 	if( operationMode == OP_MODE_NORMAL ){ // IF WE ARE IN NORMAL MODE ...
 		if( normalInterpolates[ 0 ] ){ // IF THE SUB KNOB IS INTERPOLATING ...
 			float currentSubMixKnobValue = currentSubKnobValue;
-			// USE INT VALUES FOR COMPARISONS
-			int currentSubMixKnobValue100 = currentSubMixKnobValue * 100; 
-			int lastSubKnobValueAtModeChange100 = lastSubKnobValueAtModeChange * 100;
-			if( currentSubMixKnobValue100 != lastSubKnobValueAtModeChange100 ){
-				int lastSubMixKnobValue100 = lastSubMixKnobValue * 100;
-				if( currentSubMixKnobValue100 != lastSubMixKnobValue100 ){
-					float knobDelta = currentSubMixKnobValue - lastSubMixKnobValue;
-					if( knobDelta < 0.0 ){ // IF WE NEED TO ADJUST DOWNWARD...
-						float adjustedValue = lastSubMixKnobValue - 0.0002;
-						if( adjustedValue <= currentSubMixKnobValue ){
-							normalInterpolates[ 0 ] = false;
-							subMixKnobValue = lastSubMixKnobValue = currentSubMixKnobValue;
-						} else subMixKnobValue = lastSubMixKnobValue = adjustedValue;
-					} else { // ELSE WE NEED TO ADJUST UPWARD
-						float adjustedValue = lastSubMixKnobValue + 0.0002;
-						if( adjustedValue >= currentSubMixKnobValue ){
-							normalInterpolates[ 0 ] = false;
-							subMixKnobValue = lastSubMixKnobValue = currentSubMixKnobValue;
-						} else subMixKnobValue = lastSubMixKnobValue = adjustedValue;
-					}
-				}
+
+			// DID THE CURRENT KNOB VALUE CHANGE FROM WHERE IT WAS WHEN THE MODE WAS LAST CHANGED?
+			if( !fcompare( currentSubMixKnobValue, lastSubKnobValueAtModeChange ) ){
+				// IF CURRENT SUB KNOB INTERPOLATION VALUE IS NOT VALID (AKA IN A RANGE BETWEEN 0.0 AND 1.0),
+				//  THIS IS OUR FIRST PASS AT INTERPOLATION. SET IT TO THE LAST SUBMIX KNOB VALUE
+				if( currentSubMixKnobInterpolationValue < 0.0 || currentSubMixKnobInterpolationValue > 1.0 )
+					currentSubMixKnobInterpolationValue = lastSubMixKnobValue;				
+				// MOVE FROM THE SAVED VALUE TOWARDS THE CURRENT KNOB POSITION
+				if( currentSubMixKnobInterpolationValue < currentSubKnobValue ) 
+					currentSubMixKnobInterpolationValue += 0.0002;
+				else currentSubMixKnobInterpolationValue -= 0.0002;				
+				// IF INTERPOLATE VALUE MATCHES THE CURRENT KNOB VALUE...
+				if( fcompare( currentSubMixKnobInterpolationValue, currentSubKnobValue, 0.002 ) ){
+					// TURN OFF INTERPOLATE
+					normalInterpolates[ 0 ] = false;
+					// SET INTERPOLATE VALUE TO AN INVALID STATE FOR NEXT TIME
+					currentSubMixKnobInterpolationValue = 2.0;
+					subMixKnobValue = currentSubKnobValue;
+				} else subMixKnobValue = currentSubMixKnobInterpolationValue;				
 			} else subMixKnobValue = lastSubMixKnobValueAtModeChange;
-		} else subMixKnobValue = lastSubMixKnobValue = 1.0 - hw.adc.GetFloat( subKnob );
-	} else subTypeKnobValue = lastSubTypeKnobValue = 1.0 - hw.adc.GetFloat( subKnob );
+		} else subMixKnobValue = lastSubMixKnobValue = currentSubKnobValue;
+	} else subTypeKnobValue = lastSubTypeKnobValue = currentSubKnobValue;
 }
 void handleKnobs(){
 	handleSubKnob(); // HANDLE SUB KNOB, WHICH HAS 2 MODES
@@ -308,10 +311,21 @@ int main(){
 		hw.SetLed( !operationMode );
 		if( debugMode ){
 			debugCount++;
-			if( debugCount >= 10 ){
-				// if( normalInterpolates[ 0 ] ) hw.PrintLine( "Sub Knob is in Normal Interpolation." );
+			if( debugCount >= 1000  ){
+				hw.Print( operationMode? ". " : "! " );
+				hw.Print( normalInterpolates[ 0 ]? "n! " : "n. " );
+				// hw.Print( altInterpolates[ 0 ]? "a! " : "a. " );
+				// hw.Print( "type: " );
+				// hw.Print( FLT_FMT3, FLT_VAR3( subTypeKnobValue ) );
+				hw.Print( " MIX: " );
+				hw.Print( FLT_FMT3, FLT_VAR3( subMixKnobValue ) );
+				hw.Print( ", KNOB: " );
+				hw.Print( FLT_FMT3, FLT_VAR3( 1.0 - hw.adc.GetFloat( subKnob ) ) );
+				hw.Print( ", I: " );
+				hw.PrintLine( FLT_FMT3, FLT_VAR3( currentSubMixKnobInterpolationValue ) );
 				debugCount = 0;
 			}
-		} else System::Delay( 1 );
+		}
+		System::Delay( 1 );
 	}
 }
