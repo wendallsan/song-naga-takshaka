@@ -7,6 +7,9 @@ This project is powered by the [Electro-smith Daisy Seed](https://www.electro-sm
 ![Design Concept](https://user-images.githubusercontent.com/1865305/192067031-70ce82d1-a971-420a-ab5f-f4da9a577b59.png)
 Design Concept Illustration
 
+![Functional Diagram](https://user-images.githubusercontent.com/1865305/192070034-2c32744e-0fe5-44d5-98bb-5fc99e06db0c.png)  
+Functional Diagram  
+
 ## Planned Features
 
 - **Supersaw Oscillator** modelled on the Roland JP-8000  
