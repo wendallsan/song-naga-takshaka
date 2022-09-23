@@ -8,8 +8,9 @@ namespace daisysp {
         public:
             float GetValue();
             void Update( float ),
-                Activate( float ),
-                Deactivate();
+                Activate(),
+                Deactivate(),
+                Init( bool, float );
         private:
             bool fcompare( float, float, float = 0.01 );
             bool isInterpolating_ = false,
@@ -18,7 +19,8 @@ namespace daisysp {
             float lastActiveValue_ = 0.0,
                 valueAtActivation_ = 0.0,
                 outputValue_ = 0.0,
-                valueAtLastUpdate_ = 0.0;
+                valueAtLastUpdate_ = 0.0,
+                currentActualKnobValue_;
     };
 };
 #endif
