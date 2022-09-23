@@ -40,6 +40,7 @@ float driftKnobValue,
 	shiftKnobValue,
 	subMixValue,
 	howlKnobValue,
+	resKnobValue,
 	cutoffValue,
 	filterModeValue,
 	resValue,
@@ -59,7 +60,8 @@ float driftKnobValue,
 	pounceSustainValue,
 	ampEnvSustainValue,
 	pounceDecayReleaseValue,
-	ampEnvDecayReleaseValue;
+	ampEnvDecayReleaseValue,
+	growlKnobValue;
 int detuneKnobCurveIndex, 
 	intensityKnobCurveIndex, 
 	subOscOctave = 1,
@@ -71,13 +73,28 @@ bool debugMode = false,
 DaisySeed hw;
 MidiUsbHandler midi;
 Switch modeSwitch;
-SmartKnob growlSmartKnob,
-	howlSmartKnob,
-	resSmartKnob,
-	attackSmartKnob,
-	sustainSmartKnob,
-	decayReleaseSmartKnob,
-	clawsSmartKnob;
+// x SmartKnob growlSmartKnob,
+// 	x howlSmartKnob,
+// 	x resSmartKnob,
+// 	xattackSmartKnob,
+// 	xsustainSmartKnob,
+// 	xdecayReleaseSmartKnob,
+// 	xclawsSmartKnob;
+SmartKnob subMixSmartKnob,
+	subTypeSmartKnob,
+	filterCutoffSmartKnob,
+	filterTypeSmartKnob,
+	filterResonanceSmartKnob,
+	filterPolesSmartKnob,
+	
+	pounceAttackSmartKnob,
+	ampEnvAttackSmartKnob,
+	pounceSustainSmartKnob,
+	ampEnvSustainSmartKnob,
+	pounceDecayReleaseSmartKnob,
+	ampEnvDecayReleaseSmartKnob,
+	ampSmartKnob, 
+	ampEnvModSmartKnob;
 SuperSawOsc superSaw;
 Oscillator subOsc, lfo;
 Svf filter1, filter2;
@@ -86,17 +103,17 @@ Adsr pounce, ampEnv;
 void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){
 	for( size_t i = 0; i < size; i++ ){
 		// SET ADJUST TO 1.0 - 0.8 DEPENDING ON THE SUB KNOB
-		float superSawAdjust = fmap( 1.0 - subMixValue, 0.8, 1.0 );
+		float superSawAdjust = fmap( 1.0 - subMixSmartKnob.GetValue(), 0.8, 1.0 );
 		float mixedSignal = superSaw.Process() * superSawAdjust;
 		float subSignal = subOsc.Process();
-		mixedSignal += subSignal * subMixValue;
+		mixedSignal += subSignal * subMixSmartKnob.GetValue();
 
 		float lfoSignal = lfo.Process();
 		
 		// FOR NOW, JUST USE POUNCE TO MODULATE THE FILTER ENVELOPE
 		// FOR NOW MODULATION AMOUNT IS FIXED
 		float cutoffMod = pounce.Process( envGate ) * 0.5;
-		cutoffMod += cutoffValue;
+		cutoffMod += filterCutoffSmartKnob.GetValue();
 		float filterFreq = fmap( cutoffMod, 1.0, fclamp( midiFreq * 16.0, 20.0, 20000.0 ) );
 		filter1.SetFreq( filterFreq );
 		filter2.SetFreq( filterFreq );
@@ -104,7 +121,7 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		// FIRST PASS THROUGH THE FILTERS
 		filter1.Process( mixedSignal );
 		float combSignal = combFilter.Process( mixedSignal );
-		int currentFilterMode = filterModeValue * FILTER_MODES_COUNT;
+		int currentFilterMode = filterTypeSmartKnob.GetValue() * FILTER_MODES_COUNT;
 		switch( currentFilterMode ){
 			case FILTER_MODE_LP:
 				filteredSignal = filter1.Low();
@@ -119,7 +136,7 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 				filteredSignal = combSignal;
 				break;
 		}
-		if( polesValue > 0.5 &&
+		if( filterPolesSmartKnob.GetValue() > 0.5 &&
 			(
 				currentFilterMode == FILTER_MODE_LP ||
 				currentFilterMode == FILTER_MODE_HP ||
@@ -139,8 +156,8 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 					break;
 			}
 		}
-		float ampMod = ampEnv.Process( envGate ) * ampEnvModAmountValue;
-		ampMod = fclamp( ampMod + ampValue, 0.0, 1.0 );
+		float ampMod = ampEnv.Process( envGate ) * ampEnvModSmartKnob.GetValue();
+		ampMod = fclamp( ampMod + ampSmartKnob.GetValue(), 0.0, 1.0 );
 		out[0][i] = out[1][i] = filteredSignal * ampMod;
 	}
 }
@@ -159,27 +176,38 @@ void handleMidi(){
 }
 void handleKnobs(){
 	// HANDLE THE SMART KNOBS
-	growlSmartKnob.Update( 1.0 - hw.adc.GetFloat( growlKnob ) );
-	subMixValue = growlSmartKnob.GetValueModeA();
-	subTypeValue = growlSmartKnob.GetValueModeB();
-	howlSmartKnob.Update( 1.0 - hw.adc.GetFloat( howlKnob ) );
-	cutoffValue = howlSmartKnob.GetValueModeA();
-	filterModeValue = howlSmartKnob.GetValueModeB();
-	resSmartKnob.Update( 1.0 - hw.adc.GetFloat( resKnob ) );
-	resValue = resSmartKnob.GetValueModeA();
-	polesValue = resSmartKnob.GetValueModeB();
-	attackSmartKnob.Update( 1.0 - hw.adc.GetFloat( attackKnob ) );
-	pounceAttackValue = attackSmartKnob.GetValueModeA();
-	ampEnvAttackValue = attackSmartKnob.GetValueModeB();
-	sustainSmartKnob.Update( 1.0 - hw.adc.GetFloat( sustainKnob ) );
-	pounceSustainValue = sustainSmartKnob.GetValueModeA();
-	ampEnvSustainValue = sustainSmartKnob.GetValueModeB();
-	decayReleaseSmartKnob.Update( 1.0 - hw.adc.GetFloat( decayReleaseKnob ) );
-	pounceDecayReleaseValue = decayReleaseSmartKnob.GetValueModeA();
-	ampEnvDecayReleaseValue = decayReleaseSmartKnob.GetValueModeB();
-	clawsSmartKnob.Update( 1.0 - hw.adc.GetFloat( clawsKnob ) );
-	ampValue = clawsSmartKnob.GetValueModeA();
-	ampEnvModAmountValue = clawsSmartKnob.GetValueModeB();
+	
+	// BUG:  THERE'S A CRACKLING SOUND WHEN YOU SET THE SYNTH MODE TO COMB
+	// AND PEG THE KNOB AT HARD RIGHT WHILE IN ALT MODE
+	// IF THE KNOB IS PEGGED, THE COMB FILETR SOMETIMES BREAKS WHEN YOU SWITCH
+	// BACK TO NORMAL MODE
+	growlKnobValue = 1.0 - hw.adc.GetFloat( growlKnob );
+	subMixSmartKnob.Update( growlKnobValue );
+	subTypeSmartKnob.Update( growlKnobValue );
+
+	howlKnobValue = 1.0 - hw.adc.GetFloat( howlKnob );
+	filterCutoffSmartKnob.Update( howlKnobValue );
+	filterTypeSmartKnob.Update( howlKnobValue );
+
+	resKnobValue = 1.0 - hw.adc.GetFloat( resKnob );
+	filterResonanceSmartKnob.Update( resKnobValue );
+	filterPolesSmartKnob.Update( resKnobValue );\
+
+	attackKnobValue = 1.0 - hw.adc.GetFloat( attackKnob );
+	pounceAttackSmartKnob.Update( attackKnobValue );
+	ampEnvAttackSmartKnob.Update( attackKnobValue );
+
+	sustainKnobValue = 1.0 - hw.adc.GetFloat( sustainKnob );
+	pounceSustainSmartKnob.Update( sustainKnobValue );
+	ampEnvSustainSmartKnob.Update( sustainKnobValue );
+
+	decayReleaseKnobValue = 1.0 - hw.adc.GetFloat( decayReleaseKnob );
+	pounceDecayReleaseSmartKnob.Update( decayReleaseKnobValue );
+	ampEnvDecayReleaseSmartKnob.Update( decayReleaseKnobValue );
+
+	clawsKnobValue = 1.0 - hw.adc.GetFloat( clawsKnob );
+	ampSmartKnob.Update( clawsKnobValue );
+	ampEnvModSmartKnob.Update( clawsKnobValue );
 
 	// HANDLE THE SINGLE-MODE KNOBS
 	driftKnobValue = 1.0 - hw.adc.GetFloat( driftKnob );
@@ -188,7 +216,11 @@ void handleKnobs(){
 }
 void handleSubOscWave(){
 	// SUBWAVE HAS 6 MODES
-	int subWave = subTypeValue * SUBOSC_WAVEFORMS_COUNT ;  // int range 0 - 2
+	// int subWave = subTypeValue * SUBOSC_WAVEFORMS_COUNT ;  // int range 0 - 2
+
+	int subWave = subTypeSmartKnob.GetValue() * SUBOSC_WAVEFORMS_COUNT ;  // int range 0 - 2
+
+
 	switch( subWave ){
 		case 0:
 			subOsc.SetWaveform( subOsc.WAVE_SIN );
@@ -239,6 +271,25 @@ int main(){
 	} else {
 		hw.StartLog();
 	}
+
+	// INIT THE SMART KNOBS
+	subMixSmartKnob.Activate( 0.0 );
+	subTypeSmartKnob.Deactivate();
+	filterCutoffSmartKnob.Activate( 0.0 );
+	filterTypeSmartKnob.Deactivate();
+	filterResonanceSmartKnob.Activate( 0.0 );
+	filterPolesSmartKnob.Deactivate();
+
+	
+	pounceAttackSmartKnob.Activate( 0.0 );
+	ampEnvAttackSmartKnob.Deactivate();
+	pounceSustainSmartKnob.Activate( 0.0 );
+	ampEnvSustainSmartKnob.Deactivate();
+	pounceDecayReleaseSmartKnob.Activate( 0.0 );
+	ampEnvDecayReleaseSmartKnob.Deactivate();
+	ampSmartKnob.Activate( 0.5 ); // SET AMP LEVEL TO SOMETHING OTHER THAN 0
+	ampEnvModSmartKnob.Deactivate();
+
 	superSaw.Init( SAMPLE_RATE );
 	subOsc.Init( SAMPLE_RATE );
 	filter1.Init( SAMPLE_RATE );
@@ -267,13 +318,37 @@ int main(){
 		operationMode = !modeSwitch.Pressed();
 		// IF THE OPERATING MODE CHANGED, CHANGE MODE ON THE SMART KNOBS
 		if( operationMode != lastOperationMode ) {
-			growlSmartKnob.SetMode( operationMode );
-			howlSmartKnob.SetMode( operationMode );
-			resSmartKnob.SetMode( operationMode );
-			attackSmartKnob.SetMode( operationMode );
-			sustainSmartKnob.SetMode( operationMode );
-			decayReleaseSmartKnob.SetMode( operationMode );
-			clawsSmartKnob.SetMode( operationMode );
+			if( operationMode ){
+				subMixSmartKnob.Activate( growlKnobValue );
+				subTypeSmartKnob.Deactivate();
+				filterCutoffSmartKnob.Activate( howlKnobValue );
+				filterTypeSmartKnob.Deactivate();
+				filterResonanceSmartKnob.Activate( resKnobValue );
+				filterPolesSmartKnob.Deactivate();				
+				pounceAttackSmartKnob.Activate( attackKnobValue );
+				ampEnvAttackSmartKnob.Deactivate();
+				pounceSustainSmartKnob.Activate( sustainKnobValue );
+				ampEnvSustainSmartKnob.Deactivate();
+				pounceDecayReleaseSmartKnob.Activate( decayReleaseKnobValue );
+				ampEnvDecayReleaseSmartKnob.Deactivate();
+				ampSmartKnob.Activate( clawsKnobValue );
+				ampEnvModSmartKnob.Deactivate();
+			} else {
+				subMixSmartKnob.Deactivate();
+				subTypeSmartKnob.Activate( growlKnobValue );
+				filterCutoffSmartKnob.Deactivate();
+				filterTypeSmartKnob.Activate( howlKnobValue );
+				filterResonanceSmartKnob.Deactivate();
+				filterPolesSmartKnob.Activate( resKnobValue );				
+				pounceAttackSmartKnob.Deactivate();
+				ampEnvAttackSmartKnob.Activate( attackKnobValue );
+				pounceSustainSmartKnob.Deactivate();
+				ampEnvSustainSmartKnob.Activate( sustainKnobValue );
+				pounceDecayReleaseSmartKnob.Deactivate();
+				ampEnvDecayReleaseSmartKnob.Activate( decayReleaseKnobValue );
+				ampSmartKnob.Deactivate();
+				ampEnvModSmartKnob.Activate( clawsKnobValue );
+			}
 		}
 		lastOperationMode = operationMode;
 		handleKnobs();
@@ -287,20 +362,20 @@ int main(){
 		filter2.SetRes( fmap( resValue, 0.0, 0.85 ) );
 		filter2.SetDrive( driveKnobValue );
 		
-		combFilter.SetFreq( fmap( cutoffValue, midiFreq, fclamp( midiFreq * 2.0, 20.0, 20000.0 ) ) );
-		combFilter.SetRevTime( fmap( resValue, 0.0, 1.0 ) );
+		combFilter.SetFreq( fmap( filterCutoffSmartKnob.GetValue(), midiFreq, fclamp( midiFreq * 2.0, 20.0, 20000.0 ) ) );
+		combFilter.SetRevTime( fmap( filterResonanceSmartKnob.GetValue(), 0.0, 1.0 ) );
 
-		pounce.SetAttackTime( fmap( pounceAttackValue, 0.005, 4.0 ) );
-		pounce.SetSustainLevel( pounceSustainValue );
-		pounce.SetDecayTime( fmap( pounceDecayReleaseValue, 0.005, 4.0 ) );
-		pounce.SetReleaseTime( fmap( pounceDecayReleaseValue, 0.005, 4.0 ) );
+		pounce.SetAttackTime( fmap( pounceAttackSmartKnob.GetValue(), 0.005, 4.0 ) );
+		pounce.SetSustainLevel( pounceSustainSmartKnob.GetValue() );
+		pounce.SetDecayTime( fmap( pounceDecayReleaseSmartKnob.GetValue(), 0.005, 4.0 ) );
+		pounce.SetReleaseTime( fmap( pounceDecayReleaseSmartKnob.GetValue(), 0.005, 4.0 ) );
 
 		// TODO: GIVE AMPENV ITS OWN SETTINGS VIA ALT MODE
 		// FOR NOW: SET AMPENV TO SAME SETTINGS AS POUNCE
-		ampEnv.SetAttackTime( fmap( ampEnvAttackValue, 0.005, 4.0 ) );
-		ampEnv.SetSustainLevel( ampEnvSustainValue );
-		ampEnv.SetDecayTime( fmap( ampEnvDecayReleaseValue, 0.005, 4.0 ) );
-		ampEnv.SetReleaseTime( fmap( ampEnvDecayReleaseValue, 0.005, 4.0 ) );
+		ampEnv.SetAttackTime( fmap( ampEnvAttackSmartKnob.GetValue(), 0.005, 4.0 ) );
+		ampEnv.SetSustainLevel( ampEnvSustainSmartKnob.GetValue() );
+		ampEnv.SetDecayTime( fmap( ampEnvDecayReleaseSmartKnob.GetValue(), 0.005, 4.0 ) );
+		ampEnv.SetReleaseTime( fmap( ampEnvDecayReleaseSmartKnob.GetValue(), 0.005, 4.0 ) );
 
 		handleSubOscWave();
 		// LIGHT THE LED WHEN IN ALT MODE

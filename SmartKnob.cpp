@@ -1,67 +1,33 @@
 #include "daisy_seed.h"
 #include "SmartKnob.h"
 namespace daisysp {
-    void SmartKnob::SetMode( bool setToModeA ){
-        currentModeIsA_ = setToModeA;
-        if( currentModeIsA_ ) {
-            needsToInterpolateModeA_ = true;
-            lastKnobValueAtModeChange_ = lastKnobValueModeB_ = currentKnobValue_;
-        } else {
-            needsToInterpolateModeB_ = true;
-            lastKnobValueAtModeChange_ = lastKnobValueModeA_ = currentKnobValue_;
-        }
+    void SmartKnob::Update( float currentActualKnobValue ){
+        if( isActive_ ){
+            if( isWaitingToInterpolate_ ){
+                // IF THE KNOB IS NOT WHERE IT WAS WHEN IT WAS ACTIVATED...
+                if( !fcompare( valueAtActivation_, currentActualKnobValue ) ){
+                    isWaitingToInterpolate_ = false;
+                    isInterpolating_ = true;
+                }
+                outputValue_ = lastActiveValue_;
+            } else if( isInterpolating_ ){
+                float interpolationValue;
+                // MOVE TOWARDS THE CURRENT KNOB VALUE
+                interpolationValue = valueAtLastUpdate_ < currentActualKnobValue?
+                     valueAtLastUpdate_ + 0.002 :
+                     valueAtLastUpdate_ - 0.002;
+                if( fcompare( interpolationValue, currentActualKnobValue, 0.002 ) ){
+                    isInterpolating_ = false;
+                    outputValue_ = lastActiveValue_ = valueAtLastUpdate_ = currentActualKnobValue;
+                } else outputValue_ = valueAtLastUpdate_ = interpolationValue;
+            } else outputValue_ = lastActiveValue_ = currentActualKnobValue;
+        } else outputValue_ = lastActiveValue_;
     }
-    bool SmartKnob::fcompare( float a, float b, float epsilon = 0.01 ) {
-        return fabs( a - b ) <= epsilon;
+    void SmartKnob::Activate( float currentActualKnobValue ){
+        isActive_ = isWaitingToInterpolate_ = true;
+        valueAtActivation_ = currentActualKnobValue;
     }
-    float SmartKnob::GetValueModeA(){
-        return modeAValue_;
-    }
-    float SmartKnob::GetValueModeB(){
-        return modeBValue_;
-    }
-    void SmartKnob::Update( float currentKnobValue ){
-        currentKnobValue_ = currentKnobValue;
-        if( currentModeIsA_ ){
-            modeBValue_ = lastKnobValueModeB_;
-            // IF WE NEED TO INTERPOLATE MODE A AND THE KNOB HAS BEEN MOVED FROM WHERE IT WAS WHEN WE LAST CHANGED MODES...
-            if( needsToInterpolateModeA_ && !fcompare( currentKnobValue_, lastKnobValueAtModeChange_ ) ){                     
-                needsToInterpolateModeA_ = false;
-                isInterpolatingModeA_ = true;
-                modeAInterpolateValue_ = lastKnobValueModeA_;
-            }
-            // IF WE ARE INTERPOLATING MODE A...
-            if( isInterpolatingModeA_ ){
-                // MOVE FROM THE SAVED VALUE TOWARDS THE CURRENT KNOB POSITION
-                modeAInterpolateValue_ = ( modeAInterpolateValue_ < currentKnobValue_ )?
-                    modeAInterpolateValue_ + 0.002 : 
-                    modeAInterpolateValue_ - 0.002;
-                // IF INTERPOLATE VALUE MATCHES THE CURRENT KNOB VALUE...
-                if( fcompare( modeAInterpolateValue_, currentKnobValue_, 0.002 ) ){
-                    isInterpolatingModeA_ = false;
-                    modeAValue_ = currentKnobValue_;
-                } else modeAValue_ = modeAInterpolateValue_;
-            } else if( needsToInterpolateModeA_ ) modeAValue_ = lastKnobValueModeA_;            
-            else modeAValue_ = currentKnobValue_;
-        } else {
-            modeAValue_ = lastKnobValueModeA_;
-            if( needsToInterpolateModeB_ && !fcompare( currentKnobValue_, lastKnobValueAtModeChange_ ) ){
-                needsToInterpolateModeB_ = false;
-                isInterpolatingModeB_ = true;
-                modeBInterpolateValue_ = lastKnobValueModeB_;
-            }
-            if( isInterpolatingModeB_ ){
-                // MOVE FROM THE SAVED VALUE TOWARDS THE CURRENT KNOB POSITION
-                modeBInterpolateValue_ = ( modeBInterpolateValue_ < currentKnobValue_ )?
-                    modeBInterpolateValue_ + 0.002 : 
-                    modeBInterpolateValue_ - 0.002;
-                // IF INTERPOLATE VALUE MATCHES THE CURRENT KNOB VALUE...
-                if( fcompare( modeBInterpolateValue_, currentKnobValue_, 0.002 ) ){
-                    isInterpolatingModeB_ = false;
-                    modeBValue_ = currentKnobValue_;
-                } else modeBValue_ = modeBInterpolateValue_;
-            } else if( needsToInterpolateModeB_ ) modeBValue_ = lastKnobValueModeB_;          
-            else modeBValue_ = currentKnobValue_;
-        }
-    }
+    void SmartKnob::Deactivate(){ isActive_ = false; }
+    float SmartKnob::GetValue(){ return outputValue_; }
+    bool SmartKnob::fcompare( float a, float b, float epsilon ){ return abs( a - b ) <= epsilon; }
 }

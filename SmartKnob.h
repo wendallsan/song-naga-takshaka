@@ -3,30 +3,22 @@
 #include "daisy_seed.h"
 #ifdef __cplusplus
 
-namespace daisysp {    
+namespace daisysp {  
     class SmartKnob {
         public:
-            SmartKnob(){}
-            ~SmartKnob(){}
-            float GetValueModeA(),
-                GetValueModeB();                ;
-            void SetMode( bool ),
-                Update( float );
+            float GetValue();
+            void Update( float ),
+                Activate( float ),
+                Deactivate();
         private:
-            bool needsToInterpolateModeA_ = false,
-                isInterpolatingModeA_ = false,
-                needsToInterpolateModeB_ = false,
-                isInterpolatingModeB_ = false,
-                currentModeIsA_ = true,
-                fcompare( float, float, float );
-            float currentKnobValue_,
-                modeAInterpolateValue_,
-                modeBInterpolateValue_,
-                modeAValue_,
-                modeBValue_,
-                lastKnobValueAtModeChange_ = 0.0,
-                lastKnobValueModeA_ = 0.0,
-                lastKnobValueModeB_ = 0.0;
+            bool fcompare( float, float, float = 0.01 );
+            bool isInterpolating_ = false,
+                isActive_ = false,
+                isWaitingToInterpolate_ = false;
+            float lastActiveValue_ = 0.0,
+                valueAtActivation_ = 0.0,
+                outputValue_ = 0.0,
+                valueAtLastUpdate_ = 0.0;
     };
 };
 #endif
