@@ -77,21 +77,28 @@ Adsr pounce, ampEnv;
 void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){
 	for( size_t i = 0; i < size; i++ ){
 		float pounceValue = pounce.Process( envGate );
+		float slitherValue = lfo.Process();
 		// MUX: float modDriftValue = driftValue + ( pounceValue * pounceDriftModValue );
 		float modDriftValue = driftValue;
-		superSaw.SetDrift( modDriftValue );
+		// DISABLED FOR PRE-MUX TESTING: THIS IS THE ACTUAL CORRECT SETTING, BUT WE'RE USING THIS
+		// KNOB VALUE FOR TESTING OTHER FEATURES CURRENTLY.
+		// modDriftValue += slitherValue * 
+		// 	( ( slitherValue * slitherDriftModValue ) - ( slitherDriftModValue / 2.0 ) );
+		superSaw.SetDrift( fclamp( modDriftValue, 0.0, 1.0 ) );
 		// MUX: float modShiftValue = shiftValue + ( pounceValue * pounceShiftModValue );
 		float modShiftValue = shiftValue;
-		superSaw.SetShift( modShiftValue );
+		// MUX: modShiftValue += slitherValue * 
+		//  	( ( slitherValue * slitherShiftModValue ) - ( slitherShiftModValue / 2.0 ) );
+		superSaw.SetShift( fclamp( modShiftValue, 0.0, 1.0 ) );
 		// SET ADJUST TO 1.0 - 0.8 DEPENDING ON THE SUB KNOB
 		float superSawAdjust = fmap( 1.0 - subMixSmartKnob.GetValue(), 0.8, 1.0 );
 		float mixedSignal = superSaw.Process() * superSawAdjust;
 		float subSignal = subOsc.Process();
 		mixedSignal += subSignal * subMixSmartKnob.GetValue();
-		float lfoSignal = lfo.Process();		
 		mixedSignal = distortion.Process( mixedSignal );
 		// MUX: float cutoffMod = pounceValue * pounceHowlModValue;
 		float cutoffMod = pounce.Process( envGate ) * 0.5;
+		// MUX: cutoffMod += slitherValue * slitherHowlModValue;
 		cutoffMod += filterCutoffSmartKnob.GetValue();
 		float filterFreq = fmap( cutoffMod, 1.0, fclamp( midiFreq * 16.0, 20.0, 20000.0 ) );
 		filter1.SetFreq( filterFreq );
@@ -136,6 +143,8 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 			}
 		}
 		float ampMod = ampEnv.Process( envGate ) * ampEnvModSmartKnob.GetValue();
+		// MUX: ampMod += slitherValue *
+		//	( ( slitherValue * slitherDriftModValue ) - ( slitherDriftModValue / 2.0 ) );
 		ampMod = fclamp( ampMod + ampSmartKnob.GetValue(), 0.0, 1.0 );
 		out[0][i] = out[1][i] = filteredSignal * ampMod;
 	}
@@ -323,9 +332,8 @@ int main(){
 	combFilter.SetPeriod( 2.0 ); // FOR NOW, THIS IS A FIXED VALUE = THE MAX BUFFER SIZE
 	pounce.Init( SAMPLE_RATE );
 	ampEnv.Init( SAMPLE_RATE );
-	// lfo.Init( SAMPLE_RATE );
-	// lfo.SetWaveform( lfo.WAVE_SIN );
-	// lfo.SetFreq( 1.0 );
+	lfo.Init( SAMPLE_RATE );
+	lfo.SetWaveform( lfo.WAVE_SIN );
 	initADC();
 	modeSwitch.Init( hw.GetPin( 14 ), 100 );
 	hw.SetAudioSampleRate( SaiHandle::Config::SampleRate::SAI_48KHZ );
@@ -341,6 +349,7 @@ int main(){
 		if( operationMode != lastOperationMode ) handleSmartKnobSwitching();
 		lastOperationMode = operationMode;
 		handleKnobs();
+		lfo.SetFreq( fmap( slitherValue, 0.05, 20.0 ) );
 		updateSuperSaw();
 		updateSubOsc();
 		updateDistortion();
