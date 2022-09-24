@@ -26,3 +26,15 @@ Functional Diagram
 
 ### About the Supersaw Oscillator  
 The Supersaw Oscillator used in **Takshaka** is based on the thesis ["How to Emulate the Super Saw"](https://forum.orthogonaldevices.com/uploads/short-url/rLjREzRcZvvK2527rFnTGvuwY1b.pdf) written by Adam Szabo in 2010.  
+
+## Implemented Features  
+
+- Supersaw Oscillator with Drift and Shift Controls
+- Suboscillator with mix amount and Oscillator Waveform and Octave settings 
+- Variable State Filter, with Low Pass, High Pass, Band Pass, and Comb Filter modes  
+- 2 and 4 pole Filter Modes  
+- Routable Envelope - currently with fixed routing to the Filter  
+- Amp Envelope with amount control 
+- Amp  
+- MIDI control of note  
+- monophonic mode
