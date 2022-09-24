@@ -1,5 +1,14 @@
 {
     "files.associations": {
-        "random": "cpp"
+        "random": "cpp",
+        "algorithm": "cpp",
+        "*.tcc": "cpp",
+        "bitset": "cpp",
+        "string": "cpp",
+        "vector": "cpp",
+        "fstream": "cpp",
+        "limits": "cpp",
+        "sstream": "cpp",
+        "utility": "cpp"
     }
 }
