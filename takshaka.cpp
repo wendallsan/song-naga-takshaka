@@ -296,14 +296,7 @@ void updateAmpEnv(){
 	ampEnv.SetDecayTime( fmap( ampEnvDecaySmartKnob.GetValue(), 0.005, 4.0 ) );
 	ampEnv.SetReleaseTime( fmap( ampEnvDecaySmartKnob.GetValue(), 0.005, 4.0 ) );
 }
-int main(){
-	hw.Init();
-	if( !debugMode ){		
-		MidiUsbHandler::Config midiConfig;
-		midiConfig.transport_config.periph = MidiUsbTransport::Config::INTERNAL;
-		midi.Init( midiConfig );
-	} else hw.StartLog();
-	// INIT THE SMART KNOBS
+void initSmartKnobs(){
 	subMixSmartKnob.Init( true, 0.0 );
 	subTypeSmartKnob.Init( false, 0.0 );
 	filterCutoffSmartKnob.Init( true, 0.5 );
@@ -318,7 +311,8 @@ int main(){
 	ampEnvDecaySmartKnob.Init( false, 0.2 );
 	ampSmartKnob.Init( true, 0.5 );
 	ampEnvModSmartKnob.Init( false, 0.5 );
-	// INIT DAISY SP OBJECTS
+}
+void initDSP(){
 	superSaw.Init( SAMPLE_RATE );
 	subOsc.Init( SAMPLE_RATE );
 	distortion.Init();  // SETS GAIN TO ZERO
@@ -334,6 +328,16 @@ int main(){
 	ampEnv.Init( SAMPLE_RATE );
 	lfo.Init( SAMPLE_RATE );
 	lfo.SetWaveform( lfo.WAVE_SIN );
+}
+int main(){
+	hw.Init();
+	if( !debugMode ){		
+		MidiUsbHandler::Config midiConfig;
+		midiConfig.transport_config.periph = MidiUsbTransport::Config::INTERNAL;
+		midi.Init( midiConfig );
+	} else hw.StartLog();
+	initSmartKnobs();
+	initDSP();
 	initADC();
 	modeSwitch.Init( hw.GetPin( 14 ), 100 );
 	hw.SetAudioSampleRate( SaiHandle::Config::SampleRate::SAI_48KHZ );
@@ -362,9 +366,6 @@ int main(){
 			debugCount++;
 			if( debugCount >= 500 ){	
 				// REPORT STUFF
-				hw.Print( FLT_FMT3, FLT_VAR3( slitherValue ) );
-				hw.Print( " | " );
-				hw.PrintLine( FLT_FMT3, FLT_VAR3( slitherDriftModValue ) );
 				debugCount = 0;
 			}
 		}
