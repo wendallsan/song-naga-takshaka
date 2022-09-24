@@ -15,8 +15,10 @@ enum AdcChannel {
 	driveKnob,
 	attackKnob,
 	sustainKnob,
-	DecayKnob,
+	decayKnob,
 	clawsKnob,
+	slitherKnob,
+	slitherDriftModKnob,
 	ADC_CHANNELS_COUNT 
 };
 enum SubOscWaveforms {
@@ -40,6 +42,8 @@ float driftValue,
 	shiftValue,
 	driveValue,
 	midiFreq,
+	slitherValue,
+	slitherDriftModValue,
 	combFilterBuffer[ 9600 ];
 int subOscOctave = 1,
 	midiNote = ROOT_MIDI_NOTE;
@@ -54,7 +58,7 @@ SmartKnob subMixSmartKnob,
 	subTypeSmartKnob,
 	filterCutoffSmartKnob,
 	filterTypeSmartKnob,
-	filterResonanceSmartKnob,
+	filterResSmartKnob,
 	filterPolesSmartKnob,	
 	pounceAttackSmartKnob,
 	ampEnvAttackSmartKnob,
@@ -68,6 +72,7 @@ SuperSawOsc superSaw;
 Oscillator subOsc, lfo;
 Svf filter1, filter2;
 Comb combFilter;
+Overdrive distortion;
 Adsr pounce, ampEnv;
 void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){
 	for( size_t i = 0; i < size; i++ ){
@@ -77,6 +82,7 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		float subSignal = subOsc.Process();
 		mixedSignal += subSignal * subMixSmartKnob.GetValue();
 		float lfoSignal = lfo.Process();		
+		mixedSignal = distortion.Process( mixedSignal );
 		// FOR NOW, JUST USE POUNCE TO MODULATE THE FILTER ENVELOPE
 		// FOR NOW MODULATION AMOUNT IS FIXED
 		float cutoffMod = pounce.Process( envGate ) * 0.5;
@@ -141,13 +147,7 @@ void handleMidi(){
 		} else if( midiEvent.type == NoteOff ) envGate = false;
 	}
 }
-void handleKnobs(){
-		
-	// BUG:  THERE'S A CRACKLING SOUND WHEN YOU SET THE SYNTH MODE TO COMB
-	// AND PEG THE KNOB AT HARD RIGHT WHILE IN ALT MODE
-	// IF THE KNOB IS PEGGED, THE COMB FILETR SOMETIMES BREAKS WHEN YOU SWITCH
-	// BACK TO NORMAL MODE
-
+void handleKnobs(){		
 	float growlValue = 1.0 - hw.adc.GetFloat( growlKnob );
 	subMixSmartKnob.Update( growlValue );
 	subTypeSmartKnob.Update( growlValue );
@@ -155,7 +155,7 @@ void handleKnobs(){
 	filterCutoffSmartKnob.Update( howlKnobValue );
 	filterTypeSmartKnob.Update( howlKnobValue );
 	float resKnobValue = 1.0 - hw.adc.GetFloat( resKnob );
-	filterResonanceSmartKnob.Update( resKnobValue );
+	filterResSmartKnob.Update( resKnobValue );
 	filterPolesSmartKnob.Update( resKnobValue );
 	float attackKnobValue = 1.0 - hw.adc.GetFloat( attackKnob );
 	pounceAttackSmartKnob.Update( attackKnobValue );
@@ -163,7 +163,7 @@ void handleKnobs(){
 	float sustainKnobValue = 1.0 - hw.adc.GetFloat( sustainKnob );
 	pounceSustainSmartKnob.Update( sustainKnobValue );
 	ampEnvSustainSmartKnob.Update( sustainKnobValue );
-	float decayKnobValue = 1.0 - hw.adc.GetFloat( DecayKnob );
+	float decayKnobValue = 1.0 - hw.adc.GetFloat( decayKnob );
 	pounceDecaySmartKnob.Update( decayKnobValue );
 	ampEnvDecaySmartKnob.Update( decayKnobValue );
 	float clawsKnobValue = 1.0 - hw.adc.GetFloat( clawsKnob );
@@ -172,8 +172,10 @@ void handleKnobs(){
 	driftValue = 1.0 - hw.adc.GetFloat( driftKnob );
 	shiftValue = 1.0 - hw.adc.GetFloat( shiftKnob );
 	driveValue = 1.0 - hw.adc.GetFloat( driveKnob );
+	slitherValue = 1.0 - hw.adc.GetFloat( slitherKnob );
+	slitherDriftModValue = 1.0 - hw.adc.GetFloat( slitherDriftModKnob );
 }
-void handleSubOscWave(){
+void updateSubOscWave(){
 	int subWave = subTypeSmartKnob.GetValue() * SUBOSC_WAVEFORMS_COUNT ;  // int range 0 - 2
 	switch( subWave ){
 		case 0:
@@ -211,10 +213,74 @@ void initADC(){
     adcConfig[ driveKnob ].InitSingle( daisy::seed::A5 );
     adcConfig[ attackKnob ].InitSingle( daisy::seed::A6 );
     adcConfig[ sustainKnob ].InitSingle( daisy::seed::A7 );
-    adcConfig[ DecayKnob ].InitSingle( daisy::seed::A8 );
+    adcConfig[ decayKnob ].InitSingle( daisy::seed::A8 );
     adcConfig[ clawsKnob ].InitSingle( daisy::seed::A9 );
+    adcConfig[ slitherKnob ].InitSingle( daisy::seed::A10 );
+    adcConfig[ slitherDriftModKnob ].InitSingle( daisy::seed::A11 );
 	hw.adc.Init( adcConfig, ADC_CHANNELS_COUNT );
     hw.adc.Start();
+}
+void handleSmartKnobSwitching(){
+	if( operationMode ){
+		subMixSmartKnob.Activate();
+		subTypeSmartKnob.Deactivate();
+		filterCutoffSmartKnob.Activate();
+		filterTypeSmartKnob.Deactivate();
+		filterResSmartKnob.Activate();
+		filterPolesSmartKnob.Deactivate();				
+		pounceAttackSmartKnob.Activate();
+		ampEnvAttackSmartKnob.Deactivate();
+		pounceSustainSmartKnob.Activate();
+		ampEnvSustainSmartKnob.Deactivate();
+		pounceDecaySmartKnob.Activate();
+		ampEnvDecaySmartKnob.Deactivate();
+		ampSmartKnob.Activate();
+		ampEnvModSmartKnob.Deactivate();
+	} else {
+		subMixSmartKnob.Deactivate();
+		subTypeSmartKnob.Activate();
+		filterCutoffSmartKnob.Deactivate();
+		filterTypeSmartKnob.Activate();
+		filterResSmartKnob.Deactivate();
+		filterPolesSmartKnob.Activate();				
+		pounceAttackSmartKnob.Deactivate();
+		ampEnvAttackSmartKnob.Activate();
+		pounceSustainSmartKnob.Deactivate();
+		ampEnvSustainSmartKnob.Activate();
+		pounceDecaySmartKnob.Deactivate();
+		ampEnvDecaySmartKnob.Activate();
+		ampSmartKnob.Deactivate();
+		ampEnvModSmartKnob.Activate();
+	}
+}
+void updateSuperSaw(){
+	superSaw.SetFreq( midiFreq );
+	superSaw.SetDrift( driftValue );
+	superSaw.SetShift( shiftValue );
+}
+void updateSubOsc(){
+	subOsc.SetFreq( midiFreq / ( subOscOctave + 1 ) );
+}
+void updateDistortion(){
+	distortion.SetDrive( fmap( driveValue, 0.25, 0.9 ) );
+}
+void updateFilters(){
+	float resValue = fmap( filterResSmartKnob.GetValue(), 0.0, 0.85 );
+	filter1.SetRes( resValue );
+	filter2.SetRes( resValue );	
+	combFilter.SetRevTime( fmap( filterResSmartKnob.GetValue(), 0.0, 1.0 ) );
+}
+void updatePounce(){
+	pounce.SetAttackTime( fmap( pounceAttackSmartKnob.GetValue(), 0.005, 4.0 ) );
+	pounce.SetSustainLevel( pounceSustainSmartKnob.GetValue() );
+	pounce.SetDecayTime( fmap( pounceDecaySmartKnob.GetValue(), 0.005, 4.0 ) );
+	pounce.SetReleaseTime( fmap( pounceDecaySmartKnob.GetValue(), 0.005, 4.0 ) );
+}
+void updateAmpEnv(){
+	ampEnv.SetAttackTime( fmap( ampEnvAttackSmartKnob.GetValue(), 0.005, 4.0 ) );
+	ampEnv.SetSustainLevel( ampEnvSustainSmartKnob.GetValue() );
+	ampEnv.SetDecayTime( fmap( ampEnvDecaySmartKnob.GetValue(), 0.005, 4.0 ) );
+	ampEnv.SetReleaseTime( fmap( ampEnvDecaySmartKnob.GetValue(), 0.005, 4.0 ) );
 }
 int main(){
 	hw.Init();
@@ -228,7 +294,7 @@ int main(){
 	subTypeSmartKnob.Init( false, 0.0 );
 	filterCutoffSmartKnob.Init( true, 0.5 );
 	filterTypeSmartKnob.Init( false, 0.0 );
-	filterResonanceSmartKnob.Init( true, 0.0 );
+	filterResSmartKnob.Init( true, 0.0 );
 	filterPolesSmartKnob.Init( false, 0.0 );
 	pounceAttackSmartKnob.Init( true, 0.0 );
 	ampEnvAttackSmartKnob.Init( false, 0.0 );
@@ -241,8 +307,11 @@ int main(){
 	// INIT DAISY SP OBJECTS
 	superSaw.Init( SAMPLE_RATE );
 	subOsc.Init( SAMPLE_RATE );
+	distortion.Init();  // SETS GAIN TO ZERO
 	filter1.Init( SAMPLE_RATE );
+	filter1.SetDrive( 0.0 );
 	filter2.Init( SAMPLE_RATE );
+	filter2.SetDrive( 0.0 );
 	int combfilterBufferLength = sizeof( combFilterBuffer ) / sizeof( combFilterBuffer[ 0 ] );
 	for( int i = 0; i < combfilterBufferLength; i++ ) combFilterBuffer[ i ] = 0.0;
 	combFilter.Init( SAMPLE_RATE, combFilterBuffer, combfilterBufferLength );
@@ -261,68 +330,27 @@ int main(){
 		if( !debugMode ) handleMidi();
 		else midiNote = ROOT_MIDI_NOTE;
 		midiFreq = mtof( midiNote );
-		superSaw.SetFreq( midiFreq );
-		subOsc.SetFreq( midiFreq / ( subOscOctave + 1 ) );
 		modeSwitch.Debounce();
-		operationMode = !modeSwitch.Pressed();
+		operationMode = !modeSwitch.Pressed();		
 		// IF THE OPERATING MODE CHANGED, CHANGE MODE ON THE SMART KNOBS
-		if( operationMode != lastOperationMode ) {
-			if( operationMode ){
-				subMixSmartKnob.Activate();
-				subTypeSmartKnob.Deactivate();
-				filterCutoffSmartKnob.Activate();
-				filterTypeSmartKnob.Deactivate();
-				filterResonanceSmartKnob.Activate();
-				filterPolesSmartKnob.Deactivate();				
-				pounceAttackSmartKnob.Activate();
-				ampEnvAttackSmartKnob.Deactivate();
-				pounceSustainSmartKnob.Activate();
-				ampEnvSustainSmartKnob.Deactivate();
-				pounceDecaySmartKnob.Activate();
-				ampEnvDecaySmartKnob.Deactivate();
-				ampSmartKnob.Activate();
-				ampEnvModSmartKnob.Deactivate();
-			} else {
-				subMixSmartKnob.Deactivate();
-				subTypeSmartKnob.Activate();
-				filterCutoffSmartKnob.Deactivate();
-				filterTypeSmartKnob.Activate();
-				filterResonanceSmartKnob.Deactivate();
-				filterPolesSmartKnob.Activate();				
-				pounceAttackSmartKnob.Deactivate();
-				ampEnvAttackSmartKnob.Activate();
-				pounceSustainSmartKnob.Deactivate();
-				ampEnvSustainSmartKnob.Activate();
-				pounceDecaySmartKnob.Deactivate();
-				ampEnvDecaySmartKnob.Activate();
-				ampSmartKnob.Deactivate();
-				ampEnvModSmartKnob.Activate();
-			}
-		}
+		if( operationMode != lastOperationMode ) handleSmartKnobSwitching();
 		lastOperationMode = operationMode;
 		handleKnobs();
-		superSaw.SetDrift( driftValue );
-		superSaw.SetShift( shiftValue );
-		float resValue = fmap( filterResonanceSmartKnob.GetValue(), 0.0, 0.85 );
-		filter1.SetRes( resValue );
-		filter1.SetDrive( driveValue );
-		filter2.SetRes( resValue );
-		filter2.SetDrive( driveValue );		
-		combFilter.SetRevTime( fmap( filterResonanceSmartKnob.GetValue(), 0.0, 1.0 ) );
-		pounce.SetAttackTime( fmap( pounceAttackSmartKnob.GetValue(), 0.005, 4.0 ) );
-		pounce.SetSustainLevel( pounceSustainSmartKnob.GetValue() );
-		pounce.SetDecayTime( fmap( pounceDecaySmartKnob.GetValue(), 0.005, 4.0 ) );
-		pounce.SetReleaseTime( fmap( pounceDecaySmartKnob.GetValue(), 0.005, 4.0 ) );
-		ampEnv.SetAttackTime( fmap( ampEnvAttackSmartKnob.GetValue(), 0.005, 4.0 ) );
-		ampEnv.SetSustainLevel( ampEnvSustainSmartKnob.GetValue() );
-		ampEnv.SetDecayTime( fmap( ampEnvDecaySmartKnob.GetValue(), 0.005, 4.0 ) );
-		ampEnv.SetReleaseTime( fmap( ampEnvDecaySmartKnob.GetValue(), 0.005, 4.0 ) );
-		handleSubOscWave();
+		updateSuperSaw();
+		updateSubOsc();
+		updateDistortion();
+		updateFilters();
+		updatePounce();
+		updateAmpEnv();
+		updateSubOscWave();
 		hw.SetLed( !operationMode ); // LIGHT THE LED WHEN IN ALT MODE
 		if( debugMode ){
 			debugCount++;
 			if( debugCount >= 500 ){	
 				// REPORT STUFF
+				hw.Print( FLT_FMT3, FLT_VAR3( slitherValue ) );
+				hw.Print( " | " );
+				hw.PrintLine( FLT_FMT3, FLT_VAR3( slitherDriftModValue ) );
 				debugCount = 0;
 			}
 		}
