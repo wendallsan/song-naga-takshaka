@@ -1,0 +1,1769 @@
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 28, 1
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 2
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"SuperSawOsc.cpp"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text._ZN7daisysp11SuperSawOsc4InitEf,"ax",%progbits
+  17              		.align	1
+  18              		.p2align 2,,3
+  19              		.global	_ZN7daisysp11SuperSawOsc4InitEf
+  20              		.arch armv7e-m
+  21              		.syntax unified
+  22              		.thumb
+  23              		.thumb_func
+  24              		.fpu fpv5-d16
+  26              	_ZN7daisysp11SuperSawOsc4InitEf:
+  27              	.LVL0:
+  28              	.LFB4785:
+  29              		.file 1 "SuperSawOsc.cpp"
+   1:SuperSawOsc.cpp **** #include "daisy_seed.h"
+   2:SuperSawOsc.cpp **** #include "SuperSawOsc.h"
+   3:SuperSawOsc.cpp **** #include "daisysp.h"
+   4:SuperSawOsc.cpp **** #include <algorithm>
+   5:SuperSawOsc.cpp **** namespace daisysp {
+   6:SuperSawOsc.cpp ****     void SuperSawOsc::Init( float sampleRate ){
+  30              		.loc 1 6 47 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+   7:SuperSawOsc.cpp ****         sampleRate_ = sampleRate;
+  34              		.loc 1 7 9 view .LVU1
+   6:SuperSawOsc.cpp ****         sampleRate_ = sampleRate;
+  35              		.loc 1 6 47 is_stmt 0 view .LVU2
+  36 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+  37              		.cfi_def_cfa_offset 24
+  38              		.cfi_offset 3, -24
+  39              		.cfi_offset 4, -20
+  40              		.cfi_offset 5, -16
+  41              		.cfi_offset 6, -12
+  42              		.cfi_offset 7, -8
+  43              		.cfi_offset 14, -4
+   8:SuperSawOsc.cpp ****         freq_ = 220.0; // INIT FREQ TO 220HZ
+  44              		.loc 1 8 15 view .LVU3
+  45 0002 2A4B     		ldr	r3, .L7
+   6:SuperSawOsc.cpp ****         sampleRate_ = sampleRate;
+  46              		.loc 1 6 47 view .LVU4
+  47 0004 F0EE407A 		vmov.f32	s15, s0
+  48 0008 0646     		mov	r6, r0
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 2
+
+
+  49 000a 00F1EC04 		add	r4, r0, #236
+  50 000e 00F11007 		add	r7, r0, #16
+  51 0012 00F50175 		add	r5, r0, #516
+   7:SuperSawOsc.cpp ****         sampleRate_ = sampleRate;
+  52              		.loc 1 7 21 view .LVU5
+  53 0016 80ED000A 		vstr.32	s0, [r0]
+  54              		.loc 1 8 9 is_stmt 1 view .LVU6
+  55              		.loc 1 8 15 is_stmt 0 view .LVU7
+  56 001a 4360     		str	r3, [r0, #4]	@ float
+   9:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){
+  57              		.loc 1 9 9 is_stmt 1 view .LVU8
+  58              	.LVL1:
+  59              	.LBB85:
+  60              		.loc 1 9 27 view .LVU9
+  61 001c 01E0     		b	.L3
+  62              	.LVL2:
+  63              	.L6:
+  10:SuperSawOsc.cpp ****             superSaws_[ i ].Init( sampleRate_ );
+  64              		.loc 1 10 33 is_stmt 0 view .LVU10
+  65 001e D6ED007A 		vldr.32	s15, [r6]
+  66              	.L3:
+  67              		.loc 1 10 13 is_stmt 1 discriminator 2 view .LVU11
+  68              	.LVL3:
+  69              	.LBB86:
+  70              	.LBI86:
+  71              		.file 2 "../../DaisySP//Source/Synthesis/oscillator.h"
+   1:../../DaisySP//Source/Synthesis/oscillator.h **** #pragma once
+   2:../../DaisySP//Source/Synthesis/oscillator.h **** #ifndef DSY_OSCILLATOR_H
+   3:../../DaisySP//Source/Synthesis/oscillator.h **** #define DSY_OSCILLATOR_H
+   4:../../DaisySP//Source/Synthesis/oscillator.h **** #include <stdint.h>
+   5:../../DaisySP//Source/Synthesis/oscillator.h **** #include "Utility/dsp.h"
+   6:../../DaisySP//Source/Synthesis/oscillator.h **** #ifdef __cplusplus
+   7:../../DaisySP//Source/Synthesis/oscillator.h **** 
+   8:../../DaisySP//Source/Synthesis/oscillator.h **** namespace daisysp
+   9:../../DaisySP//Source/Synthesis/oscillator.h **** {
+  10:../../DaisySP//Source/Synthesis/oscillator.h **** /** Synthesis of several waveforms, including polyBLEP bandlimited waveforms.
+  11:../../DaisySP//Source/Synthesis/oscillator.h **** */
+  12:../../DaisySP//Source/Synthesis/oscillator.h **** class Oscillator
+  13:../../DaisySP//Source/Synthesis/oscillator.h **** {
+  14:../../DaisySP//Source/Synthesis/oscillator.h ****   public:
+  15:../../DaisySP//Source/Synthesis/oscillator.h ****     Oscillator() {}
+  16:../../DaisySP//Source/Synthesis/oscillator.h ****     ~Oscillator() {}
+  17:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Choices for output waveforms, POLYBLEP are appropriately labeled. Others are naive forms.
+  18:../../DaisySP//Source/Synthesis/oscillator.h ****     */
+  19:../../DaisySP//Source/Synthesis/oscillator.h ****     enum
+  20:../../DaisySP//Source/Synthesis/oscillator.h ****     {
+  21:../../DaisySP//Source/Synthesis/oscillator.h ****         WAVE_SIN,
+  22:../../DaisySP//Source/Synthesis/oscillator.h ****         WAVE_TRI,
+  23:../../DaisySP//Source/Synthesis/oscillator.h ****         WAVE_SAW,
+  24:../../DaisySP//Source/Synthesis/oscillator.h ****         WAVE_RAMP,
+  25:../../DaisySP//Source/Synthesis/oscillator.h ****         WAVE_SQUARE,
+  26:../../DaisySP//Source/Synthesis/oscillator.h ****         WAVE_POLYBLEP_TRI,
+  27:../../DaisySP//Source/Synthesis/oscillator.h ****         WAVE_POLYBLEP_SAW,
+  28:../../DaisySP//Source/Synthesis/oscillator.h ****         WAVE_POLYBLEP_SQUARE,
+  29:../../DaisySP//Source/Synthesis/oscillator.h ****         WAVE_LAST,
+  30:../../DaisySP//Source/Synthesis/oscillator.h ****     };
+  31:../../DaisySP//Source/Synthesis/oscillator.h **** 
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 3
+
+
+  32:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  33:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Initializes the Oscillator
+  34:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  35:../../DaisySP//Source/Synthesis/oscillator.h ****         \param sample_rate - sample rate of the audio engine being run, and the frequency that the 
+  36:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  37:../../DaisySP//Source/Synthesis/oscillator.h ****         Defaults:
+  38:../../DaisySP//Source/Synthesis/oscillator.h ****         - freq_ = 100 Hz
+  39:../../DaisySP//Source/Synthesis/oscillator.h ****         - amp_ = 0.5
+  40:../../DaisySP//Source/Synthesis/oscillator.h ****         - waveform_ = sine wave.
+  41:../../DaisySP//Source/Synthesis/oscillator.h ****     */
+  42:../../DaisySP//Source/Synthesis/oscillator.h ****     void Init(float sample_rate)
+  72              		.loc 2 42 10 discriminator 2 view .LVU12
+  73              	.LBB87:
+  43:../../DaisySP//Source/Synthesis/oscillator.h ****     {
+  44:../../DaisySP//Source/Synthesis/oscillator.h ****         sr_        = sample_rate;
+  74              		.loc 2 44 9 discriminator 2 view .LVU13
+  45:../../DaisySP//Source/Synthesis/oscillator.h ****         sr_recip_  = 1.0f / sample_rate;
+  75              		.loc 2 45 27 is_stmt 0 discriminator 2 view .LVU14
+  76 0022 F7EE006A 		vmov.f32	s13, #1.0e+0
+  46:../../DaisySP//Source/Synthesis/oscillator.h ****         freq_      = 100.0f;
+  47:../../DaisySP//Source/Synthesis/oscillator.h ****         amp_       = 0.5f;
+  77              		.loc 2 47 20 discriminator 2 view .LVU15
+  78 0026 4FF07C52 		mov	r2, #1056964608
+  48:../../DaisySP//Source/Synthesis/oscillator.h ****         phase_     = 0.0f;
+  79              		.loc 2 48 20 discriminator 2 view .LVU16
+  80 002a 0023     		movs	r3, #0
+  46:../../DaisySP//Source/Synthesis/oscillator.h ****         freq_      = 100.0f;
+  81              		.loc 2 46 20 discriminator 2 view .LVU17
+  82 002c 9FED200A 		vldr.32	s0, .L7+4
+  44:../../DaisySP//Source/Synthesis/oscillator.h ****         sr_recip_  = 1.0f / sample_rate;
+  83              		.loc 2 44 20 discriminator 2 view .LVU18
+  84 0030 C4ED037A 		vstr.32	s15, [r4, #12]
+  45:../../DaisySP//Source/Synthesis/oscillator.h ****         freq_      = 100.0f;
+  85              		.loc 2 45 9 is_stmt 1 discriminator 2 view .LVU19
+  49:../../DaisySP//Source/Synthesis/oscillator.h ****         phase_inc_ = CalcPhaseInc(freq_);
+  86              		.loc 2 49 34 is_stmt 0 discriminator 2 view .LVU20
+  87 0034 2046     		mov	r0, r4
+  45:../../DaisySP//Source/Synthesis/oscillator.h ****         freq_      = 100.0f;
+  88              		.loc 2 45 27 discriminator 2 view .LVU21
+  89 0036 86EEA77A 		vdiv.f32	s14, s13, s15
+  47:../../DaisySP//Source/Synthesis/oscillator.h ****         phase_     = 0.0f;
+  90              		.loc 2 47 20 discriminator 2 view .LVU22
+  91 003a 6260     		str	r2, [r4, #4]	@ float
+  48:../../DaisySP//Source/Synthesis/oscillator.h ****         phase_inc_ = CalcPhaseInc(freq_);
+  92              		.loc 2 48 20 discriminator 2 view .LVU23
+  93 003c 6361     		str	r3, [r4, #20]	@ float
+  94              	.LBE87:
+  95              	.LBE86:
+   9:SuperSawOsc.cpp ****             superSaws_[ i ].Init( sampleRate_ );
+  96              		.loc 1 9 27 discriminator 2 view .LVU24
+  97 003e 2834     		adds	r4, r4, #40
+  98              	.LVL4:
+  99              	.LBB90:
+ 100              	.LBB88:
+  46:../../DaisySP//Source/Synthesis/oscillator.h ****         amp_       = 0.5f;
+ 101              		.loc 2 46 20 discriminator 2 view .LVU25
+ 102 0040 04ED080A 		vstr.32	s0, [r4, #-32]
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 4
+
+
+  45:../../DaisySP//Source/Synthesis/oscillator.h ****         freq_      = 100.0f;
+ 103              		.loc 2 45 20 discriminator 2 view .LVU26
+ 104 0044 04ED067A 		vstr.32	s14, [r4, #-24]
+  46:../../DaisySP//Source/Synthesis/oscillator.h ****         amp_       = 0.5f;
+ 105              		.loc 2 46 9 is_stmt 1 discriminator 2 view .LVU27
+  47:../../DaisySP//Source/Synthesis/oscillator.h ****         phase_     = 0.0f;
+ 106              		.loc 2 47 9 discriminator 2 view .LVU28
+  48:../../DaisySP//Source/Synthesis/oscillator.h ****         phase_inc_ = CalcPhaseInc(freq_);
+ 107              		.loc 2 48 9 discriminator 2 view .LVU29
+ 108              		.loc 2 49 9 discriminator 2 view .LVU30
+ 109              		.loc 2 49 34 is_stmt 0 discriminator 2 view .LVU31
+ 110 0048 FFF7FEFF 		bl	_ZN7daisysp10Oscillator12CalcPhaseIncEf
+ 111              	.LVL5:
+  50:../../DaisySP//Source/Synthesis/oscillator.h ****         waveform_  = WAVE_SIN;
+  51:../../DaisySP//Source/Synthesis/oscillator.h ****         eoc_       = true;
+ 112              		.loc 2 51 20 discriminator 2 view .LVU32
+ 113 004c 0123     		movs	r3, #1
+ 114              	.LBE88:
+ 115              	.LBE90:
+ 116              	.LBB91:
+ 117              	.LBB92:
+  52:../../DaisySP//Source/Synthesis/oscillator.h ****         eor_       = true;
+  53:../../DaisySP//Source/Synthesis/oscillator.h ****     }
+  54:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  55:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  56:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Changes the frequency of the Oscillator, and recalculates phase increment.
+  57:../../DaisySP//Source/Synthesis/oscillator.h ****     */
+  58:../../DaisySP//Source/Synthesis/oscillator.h ****     inline void SetFreq(const float f)
+  59:../../DaisySP//Source/Synthesis/oscillator.h ****     {
+  60:../../DaisySP//Source/Synthesis/oscillator.h ****         freq_      = f;
+  61:../../DaisySP//Source/Synthesis/oscillator.h ****         phase_inc_ = CalcPhaseInc(f);
+  62:../../DaisySP//Source/Synthesis/oscillator.h ****     }
+  63:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  64:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  65:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the amplitude of the waveform.
+  66:../../DaisySP//Source/Synthesis/oscillator.h ****     */
+  67:../../DaisySP//Source/Synthesis/oscillator.h ****     inline void SetAmp(const float a) { amp_ = a; }
+  68:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the waveform to be synthesized by the Process() function.
+  69:../../DaisySP//Source/Synthesis/oscillator.h ****     */
+  70:../../DaisySP//Source/Synthesis/oscillator.h ****     inline void SetWaveform(const uint8_t wf)
+  71:../../DaisySP//Source/Synthesis/oscillator.h ****     {
+  72:../../DaisySP//Source/Synthesis/oscillator.h ****         waveform_ = wf < WAVE_LAST ? wf : WAVE_SIN;
+ 118              		.loc 2 72 19 discriminator 2 view .LVU33
+ 119 004e 0622     		movs	r2, #6
+ 120              	.LBE92:
+ 121              	.LBE91:
+ 122              	.LBB94:
+ 123              	.LBB89:
+  49:../../DaisySP//Source/Synthesis/oscillator.h ****         waveform_  = WAVE_SIN;
+ 124              		.loc 2 49 20 discriminator 2 view .LVU34
+ 125 0050 04ED040A 		vstr.32	s0, [r4, #-16]
+  50:../../DaisySP//Source/Synthesis/oscillator.h ****         waveform_  = WAVE_SIN;
+ 126              		.loc 2 50 9 is_stmt 1 discriminator 2 view .LVU35
+  51:../../DaisySP//Source/Synthesis/oscillator.h ****         eor_       = true;
+ 127              		.loc 2 51 9 discriminator 2 view .LVU36
+  51:../../DaisySP//Source/Synthesis/oscillator.h ****         eor_       = true;
+ 128              		.loc 2 51 20 is_stmt 0 discriminator 2 view .LVU37
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 5
+
+
+ 129 0054 04F8033C 		strb	r3, [r4, #-3]
+  52:../../DaisySP//Source/Synthesis/oscillator.h ****         eor_       = true;
+ 130              		.loc 2 52 9 is_stmt 1 discriminator 2 view .LVU38
+  52:../../DaisySP//Source/Synthesis/oscillator.h ****         eor_       = true;
+ 131              		.loc 2 52 20 is_stmt 0 discriminator 2 view .LVU39
+ 132 0058 04F8043C 		strb	r3, [r4, #-4]
+ 133              	.LVL6:
+  52:../../DaisySP//Source/Synthesis/oscillator.h ****         eor_       = true;
+ 134              		.loc 2 52 20 discriminator 2 view .LVU40
+ 135              	.LBE89:
+ 136              	.LBE94:
+  11:SuperSawOsc.cpp ****             superSaws_[ i ].SetWaveform( superSaws_[ i ].WAVE_POLYBLEP_SAW );
+ 137              		.loc 1 11 13 is_stmt 1 discriminator 2 view .LVU41
+ 138              	.LBB95:
+ 139              	.LBI91:
+  70:../../DaisySP//Source/Synthesis/oscillator.h ****     {
+ 140              		.loc 2 70 17 discriminator 2 view .LVU42
+ 141              	.LBB93:
+ 142              		.loc 2 72 9 discriminator 2 view .LVU43
+ 143              		.loc 2 72 19 is_stmt 0 discriminator 2 view .LVU44
+ 144 005c 04F8282C 		strb	r2, [r4, #-40]
+ 145              	.LVL7:
+ 146              		.loc 2 72 19 discriminator 2 view .LVU45
+ 147              	.LBE93:
+ 148              	.LBE95:
+  12:SuperSawOsc.cpp ****             /*
+  13:SuperSawOsc.cpp ****             RANDOMIZE PHASE AND SAVE FOR LATER USAGE-- 
+  14:SuperSawOsc.cpp ****             WE'LL EVENTUALLY WANT TO CHANGE PHASE WITH EACH NEW NOTE USING PhaseAdd()
+  15:SuperSawOsc.cpp ****             AND IT HELPS TO KNOW THE CURRENT PHASE TO DO THAT
+  16:SuperSawOsc.cpp ****             */
+  17:SuperSawOsc.cpp ****             phases_[ i ] = rand() / RAND_MAX;
+ 149              		.loc 1 17 13 is_stmt 1 discriminator 2 view .LVU46
+ 150              		.loc 1 17 32 is_stmt 0 discriminator 2 view .LVU47
+ 151 0060 FFF7FEFF 		bl	rand
+ 152              	.LVL8:
+ 153              		.loc 1 17 35 discriminator 2 view .LVU48
+ 154 0064 134A     		ldr	r2, .L7+8
+ 155              	.LBB96:
+ 156              	.LBB97:
+  73:../../DaisySP//Source/Synthesis/oscillator.h ****     }
+  74:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  75:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Returns true if cycle is at end of rise. Set during call to Process.
+  76:../../DaisySP//Source/Synthesis/oscillator.h ****     */
+  77:../../DaisySP//Source/Synthesis/oscillator.h ****     inline bool IsEOR() { return eor_; }
+  78:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  79:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Returns true if cycle is at end of cycle. Set during call to Process.
+  80:../../DaisySP//Source/Synthesis/oscillator.h ****     */
+  81:../../DaisySP//Source/Synthesis/oscillator.h ****     inline bool IsEOC() { return eoc_; }
+  82:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  83:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Returns true if cycle rising.
+  84:../../DaisySP//Source/Synthesis/oscillator.h ****     */
+  85:../../DaisySP//Source/Synthesis/oscillator.h ****     inline bool IsRising() { return phase_ < PI_F; }
+  86:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  87:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Returns true if cycle falling.
+  88:../../DaisySP//Source/Synthesis/oscillator.h ****     */
+  89:../../DaisySP//Source/Synthesis/oscillator.h ****     inline bool IsFalling() { return phase_ >= PI_F; }
+  90:../../DaisySP//Source/Synthesis/oscillator.h **** 
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 6
+
+
+  91:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Processes the waveform to be generated, returning one sample. This should be called once pe
+  92:../../DaisySP//Source/Synthesis/oscillator.h ****     */
+  93:../../DaisySP//Source/Synthesis/oscillator.h ****     float Process();
+  94:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  95:../../DaisySP//Source/Synthesis/oscillator.h **** 
+  96:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Adds a value 0.0-1.0 (mapped to 0.0-TWO_PI) to the current phase. Useful for PM and "FM" sy
+  97:../../DaisySP//Source/Synthesis/oscillator.h ****     */
+  98:../../DaisySP//Source/Synthesis/oscillator.h ****     void PhaseAdd(float _phase) { phase_ += (_phase * TWOPI_F); }
+ 157              		.loc 2 98 42 discriminator 2 view .LVU49
+ 158 0066 DFED146A 		vldr.32	s13, .L7+12
+ 159              	.LBE97:
+ 160              	.LBE96:
+   9:SuperSawOsc.cpp ****             superSaws_[ i ].Init( sampleRate_ );
+ 161              		.loc 1 9 27 discriminator 2 view .LVU50
+ 162 006a AC42     		cmp	r4, r5
+ 163              		.loc 1 17 35 discriminator 2 view .LVU51
+ 164 006c 82FB0032 		smull	r3, r2, r2, r0
+ 165 0070 4FEAE073 		asr	r3, r0, #31
+ 166 0074 C3EB6270 		rsb	r0, r3, r2, asr #29
+ 167              		.loc 1 17 26 discriminator 2 view .LVU52
+ 168 0078 07EE900A 		vmov	s15, r0	@ int
+ 169 007c F8EEE77A 		vcvt.f32.s32	s15, s15
+ 170 0080 E7EC017A 		vstmia.32	r7!, {s15}
+  18:SuperSawOsc.cpp ****             superSaws_[ i ].PhaseAdd( phases_[ i ] );
+ 171              		.loc 1 18 13 is_stmt 1 discriminator 2 view .LVU53
+ 172              	.LVL9:
+ 173              	.LBB99:
+ 174              	.LBI96:
+ 175              		.loc 2 98 10 discriminator 2 view .LVU54
+ 176              	.LBB98:
+ 177              		.loc 2 98 35 discriminator 2 view .LVU55
+ 178              		.loc 2 98 42 is_stmt 0 discriminator 2 view .LVU56
+ 179 0084 14ED057A 		vldr.32	s14, [r4, #-20]
+ 180 0088 A7EEA67A 		vfma.f32	s14, s15, s13
+ 181 008c 04ED057A 		vstr.32	s14, [r4, #-20]
+ 182              	.LVL10:
+ 183              		.loc 2 98 42 discriminator 2 view .LVU57
+ 184              	.LBE98:
+ 185              	.LBE99:
+   9:SuperSawOsc.cpp ****             superSaws_[ i ].Init( sampleRate_ );
+ 186              		.loc 1 9 9 is_stmt 1 discriminator 2 view .LVU58
+   9:SuperSawOsc.cpp ****             superSaws_[ i ].Init( sampleRate_ );
+ 187              		.loc 1 9 27 discriminator 2 view .LVU59
+ 188 0090 C5D1     		bne	.L6
+ 189              	.LBE85:
+  19:SuperSawOsc.cpp ****         }
+  20:SuperSawOsc.cpp ****         hpf_.Init( sampleRate_ );
+ 190              		.loc 1 20 9 view .LVU60
+ 191              		.loc 1 20 18 is_stmt 0 view .LVU61
+ 192 0092 2046     		mov	r0, r4
+ 193 0094 96ED000A 		vldr.32	s0, [r6]
+ 194 0098 FFF7FEFF 		bl	_ZN7daisysp5ATone4InitEf
+ 195              	.LVL11:
+  21:SuperSawOsc.cpp ****         float hpfFreq = freq_;
+ 196              		.loc 1 21 9 is_stmt 1 view .LVU62
+  22:SuperSawOsc.cpp ****         hpf_.SetFreq( hpfFreq );
+ 197              		.loc 1 22 9 view .LVU63
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 7
+
+
+ 198              	.LBB100:
+ 199              	.LBI100:
+ 200              		.file 3 "../../DaisySP//Source/Filters/atone.h"
+   1:../../DaisySP//Source/Filters/atone.h **** #pragma once
+   2:../../DaisySP//Source/Filters/atone.h **** #ifndef DSY_ATONE_H
+   3:../../DaisySP//Source/Filters/atone.h **** #define DSY_ATONE_H
+   4:../../DaisySP//Source/Filters/atone.h **** 
+   5:../../DaisySP//Source/Filters/atone.h **** #include <stdint.h>
+   6:../../DaisySP//Source/Filters/atone.h **** #ifdef __cplusplus
+   7:../../DaisySP//Source/Filters/atone.h **** 
+   8:../../DaisySP//Source/Filters/atone.h **** namespace daisysp
+   9:../../DaisySP//Source/Filters/atone.h **** {
+  10:../../DaisySP//Source/Filters/atone.h **** /** A first-order recursive high-pass filter with variable frequency response.
+  11:../../DaisySP//Source/Filters/atone.h ****      Original Author(s): Barry Vercoe, John FFitch, Gabriel Maldonado
+  12:../../DaisySP//Source/Filters/atone.h **** 
+  13:../../DaisySP//Source/Filters/atone.h ****      Year: 1991
+  14:../../DaisySP//Source/Filters/atone.h **** 
+  15:../../DaisySP//Source/Filters/atone.h ****      Original Location: Csound -- OOps/ugens5.c
+  16:../../DaisySP//Source/Filters/atone.h **** 
+  17:../../DaisySP//Source/Filters/atone.h ****      Ported from soundpipe by Ben Sergentanis, May 2020
+  18:../../DaisySP//Source/Filters/atone.h ****     */
+  19:../../DaisySP//Source/Filters/atone.h **** class ATone
+  20:../../DaisySP//Source/Filters/atone.h **** {
+  21:../../DaisySP//Source/Filters/atone.h ****   public:
+  22:../../DaisySP//Source/Filters/atone.h ****     ATone() {}
+  23:../../DaisySP//Source/Filters/atone.h ****     ~ATone() {}
+  24:../../DaisySP//Source/Filters/atone.h ****     /** Initializes the ATone module.
+  25:../../DaisySP//Source/Filters/atone.h ****         \param sample_rate - The sample rate of the audio engine being run. 
+  26:../../DaisySP//Source/Filters/atone.h ****     */
+  27:../../DaisySP//Source/Filters/atone.h ****     void Init(float sample_rate);
+  28:../../DaisySP//Source/Filters/atone.h **** 
+  29:../../DaisySP//Source/Filters/atone.h **** 
+  30:../../DaisySP//Source/Filters/atone.h ****     /** Processes one sample through the filter and returns one sample.
+  31:../../DaisySP//Source/Filters/atone.h ****         \param in - input signal 
+  32:../../DaisySP//Source/Filters/atone.h ****     */
+  33:../../DaisySP//Source/Filters/atone.h ****     float Process(float &in);
+  34:../../DaisySP//Source/Filters/atone.h **** 
+  35:../../DaisySP//Source/Filters/atone.h ****     /** Sets the cutoff frequency or half-way point of the filter.
+  36:../../DaisySP//Source/Filters/atone.h ****         \param freq - frequency value in Hz. Range: Any positive value.
+  37:../../DaisySP//Source/Filters/atone.h ****     */
+  38:../../DaisySP//Source/Filters/atone.h ****     inline void SetFreq(float &freq)
+ 201              		.loc 3 38 17 view .LVU64
+ 202              	.LBB101:
+  39:../../DaisySP//Source/Filters/atone.h ****     {
+  40:../../DaisySP//Source/Filters/atone.h ****         freq_ = freq;
+ 203              		.loc 3 40 9 view .LVU65
+ 204              		.loc 3 40 15 is_stmt 0 view .LVU66
+ 205 009c 7368     		ldr	r3, [r6, #4]	@ float
+  41:../../DaisySP//Source/Filters/atone.h ****         CalculateCoefficients();
+ 206              		.loc 3 41 30 view .LVU67
+ 207 009e 2046     		mov	r0, r4
+  40:../../DaisySP//Source/Filters/atone.h ****         CalculateCoefficients();
+ 208              		.loc 3 40 15 view .LVU68
+ 209 00a0 C6F81032 		str	r3, [r6, #528]	@ float
+ 210              		.loc 3 41 9 is_stmt 1 view .LVU69
+ 211              	.LBE101:
+ 212              	.LBE100:
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 8
+
+
+  23:SuperSawOsc.cpp ****     }   
+ 213              		.loc 1 23 5 is_stmt 0 view .LVU70
+ 214 00a4 BDE8F840 		pop	{r3, r4, r5, r6, r7, lr}
+ 215              		.cfi_restore 14
+ 216              		.cfi_restore 7
+ 217              		.cfi_restore 6
+ 218              		.cfi_restore 5
+ 219              		.cfi_restore 4
+ 220              		.cfi_restore 3
+ 221              		.cfi_def_cfa_offset 0
+ 222              	.LVL12:
+ 223              	.LBB103:
+ 224              	.LBB102:
+ 225              		.loc 3 41 30 view .LVU71
+ 226 00a8 FFF7FEBF 		b	_ZN7daisysp5ATone21CalculateCoefficientsEv
+ 227              	.LVL13:
+ 228              	.L8:
+ 229              		.loc 3 41 30 view .LVU72
+ 230              		.align	2
+ 231              	.L7:
+ 232 00ac 00005C43 		.word	1130102784
+ 233 00b0 0000C842 		.word	1120403456
+ 234 00b4 01000040 		.word	1073741825
+ 235 00b8 DB0FC940 		.word	1086918619
+ 236              	.LBE102:
+ 237              	.LBE103:
+ 238              		.cfi_endproc
+ 239              	.LFE4785:
+ 241              		.section	.text._ZN7daisysp11SuperSawOsc7ProcessEv,"ax",%progbits
+ 242              		.align	1
+ 243              		.p2align 2,,3
+ 244              		.global	_ZN7daisysp11SuperSawOsc7ProcessEv
+ 245              		.syntax unified
+ 246              		.thumb
+ 247              		.thumb_func
+ 248              		.fpu fpv5-d16
+ 250              	_ZN7daisysp11SuperSawOsc7ProcessEv:
+ 251              	.LVL14:
+ 252              	.LFB4786:
+  24:SuperSawOsc.cpp ****     float SuperSawOsc::Process(){        
+ 253              		.loc 1 24 33 is_stmt 1 view -0
+ 254              		.cfi_startproc
+ 255              		@ args = 0, pretend = 0, frame = 8
+ 256              		@ frame_needed = 0, uses_anonymous_args = 0
+  25:SuperSawOsc.cpp **** 		float superSawSignal = 0.0;
+ 257              		.loc 1 25 3 view .LVU74
+  24:SuperSawOsc.cpp ****     float SuperSawOsc::Process(){        
+ 258              		.loc 1 24 33 is_stmt 0 view .LVU75
+ 259 0000 30B5     		push	{r4, r5, lr}
+ 260              		.cfi_def_cfa_offset 12
+ 261              		.cfi_offset 4, -12
+ 262              		.cfi_offset 5, -8
+ 263              		.cfi_offset 14, -4
+ 264              		.loc 1 25 9 view .LVU76
+ 265 0002 0023     		movs	r3, #0
+  24:SuperSawOsc.cpp ****     float SuperSawOsc::Process(){        
+ 266              		.loc 1 24 33 view .LVU77
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 9
+
+
+ 267 0004 83B0     		sub	sp, sp, #12
+ 268              		.cfi_def_cfa_offset 24
+ 269 0006 00F1EC04 		add	r4, r0, #236
+ 270 000a 00F50175 		add	r5, r0, #516
+ 271              		.loc 1 25 9 view .LVU78
+ 272 000e 0193     		str	r3, [sp, #4]	@ float
+  26:SuperSawOsc.cpp **** 		for( int i = 0; i < NUMBER_OF_SAWS; i++ ) 
+ 273              		.loc 1 26 3 is_stmt 1 view .LVU79
+ 274              	.LVL15:
+ 275              	.LBB104:
+ 276              		.loc 1 26 21 view .LVU80
+ 277              	.L10:
+  27:SuperSawOsc.cpp ****             superSawSignal += ( superSaws_[ i ].Process() );
+ 278              		.loc 1 27 13 discriminator 2 view .LVU81
+ 279              		.loc 1 27 56 is_stmt 0 discriminator 2 view .LVU82
+ 280 0010 2046     		mov	r0, r4
+  26:SuperSawOsc.cpp **** 		for( int i = 0; i < NUMBER_OF_SAWS; i++ ) 
+ 281              		.loc 1 26 21 discriminator 2 view .LVU83
+ 282 0012 2834     		adds	r4, r4, #40
+ 283              		.loc 1 27 56 discriminator 2 view .LVU84
+ 284 0014 FFF7FEFF 		bl	_ZN7daisysp10Oscillator7ProcessEv
+ 285              	.LVL16:
+ 286              		.loc 1 27 28 discriminator 2 view .LVU85
+ 287 0018 DDED017A 		vldr.32	s15, [sp, #4]
+  26:SuperSawOsc.cpp **** 		for( int i = 0; i < NUMBER_OF_SAWS; i++ ) 
+ 288              		.loc 1 26 21 discriminator 2 view .LVU86
+ 289 001c AC42     		cmp	r4, r5
+ 290              		.loc 1 27 28 discriminator 2 view .LVU87
+ 291 001e 37EE800A 		vadd.f32	s0, s15, s0
+ 292 0022 8DED010A 		vstr.32	s0, [sp, #4]
+  26:SuperSawOsc.cpp **** 		for( int i = 0; i < NUMBER_OF_SAWS; i++ ) 
+ 293              		.loc 1 26 3 is_stmt 1 discriminator 2 view .LVU88
+  26:SuperSawOsc.cpp **** 		for( int i = 0; i < NUMBER_OF_SAWS; i++ ) 
+ 294              		.loc 1 26 21 discriminator 2 view .LVU89
+ 295 0026 F3D1     		bne	.L10
+ 296              	.LBE104:
+  28:SuperSawOsc.cpp ****         return hpf_.Process( superSawSignal );        
+ 297              		.loc 1 28 9 view .LVU90
+ 298              		.loc 1 28 28 is_stmt 0 view .LVU91
+ 299 0028 01A9     		add	r1, sp, #4
+ 300 002a 2046     		mov	r0, r4
+ 301 002c FFF7FEFF 		bl	_ZN7daisysp5ATone7ProcessERf
+ 302              	.LVL17:
+  29:SuperSawOsc.cpp ****     }
+ 303              		.loc 1 29 5 view .LVU92
+ 304 0030 03B0     		add	sp, sp, #12
+ 305              		.cfi_def_cfa_offset 12
+ 306              		@ sp needed
+ 307 0032 30BD     		pop	{r4, r5, pc}
+ 308              		.loc 1 29 5 view .LVU93
+ 309              		.cfi_endproc
+ 310              	.LFE4786:
+ 312              		.section	.text._ZN7daisysp11SuperSawOsc7SetFreqEf,"ax",%progbits
+ 313              		.align	1
+ 314              		.p2align 2,,3
+ 315              		.global	_ZN7daisysp11SuperSawOsc7SetFreqEf
+ 316              		.syntax unified
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 10
+
+
+ 317              		.thumb
+ 318              		.thumb_func
+ 319              		.fpu fpv5-d16
+ 321              	_ZN7daisysp11SuperSawOsc7SetFreqEf:
+ 322              	.LVL18:
+ 323              	.LFB4787:
+  30:SuperSawOsc.cpp ****     void SuperSawOsc::SetFreq( float freq ){
+ 324              		.loc 1 30 44 is_stmt 1 view -0
+ 325              		.cfi_startproc
+ 326              		@ args = 0, pretend = 0, frame = 0
+ 327              		@ frame_needed = 0, uses_anonymous_args = 0
+ 328              		@ link register save eliminated.
+  31:SuperSawOsc.cpp ****         freq_ = freq;
+ 329              		.loc 1 31 9 view .LVU95
+ 330              		.loc 1 31 15 is_stmt 0 view .LVU96
+ 331 0000 80ED010A 		vstr.32	s0, [r0, #4]
+  32:SuperSawOsc.cpp ****         // WE DON'T NEED TO SET THE SET FREQ OF THE OSCILLATORS, THEY WILL 
+  33:SuperSawOsc.cpp ****         // CHANGE FREQUENCY NEXT TIME SETDRIFT IS CALLED
+  34:SuperSawOsc.cpp ****     }
+ 332              		.loc 1 34 5 view .LVU97
+ 333 0004 7047     		bx	lr
+ 334              		.cfi_endproc
+ 335              	.LFE4787:
+ 337 0006 00BF     		.section	.text._ZN7daisysp11SuperSawOsc5ResetEv,"ax",%progbits
+ 338              		.align	1
+ 339              		.p2align 2,,3
+ 340              		.global	_ZN7daisysp11SuperSawOsc5ResetEv
+ 341              		.syntax unified
+ 342              		.thumb
+ 343              		.thumb_func
+ 344              		.fpu fpv5-d16
+ 346              	_ZN7daisysp11SuperSawOsc5ResetEv:
+ 347              	.LVL19:
+ 348              	.LFB4788:
+  35:SuperSawOsc.cpp ****     void SuperSawOsc::Reset(){
+ 349              		.loc 1 35 30 is_stmt 1 view -0
+ 350              		.cfi_startproc
+ 351              		@ args = 0, pretend = 0, frame = 0
+ 352              		@ frame_needed = 0, uses_anonymous_args = 0
+  36:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){
+ 353              		.loc 1 36 9 view .LVU99
+ 354              	.LBB105:
+ 355              		.loc 1 36 27 view .LVU100
+ 356              	.LBE105:
+  35:SuperSawOsc.cpp ****     void SuperSawOsc::Reset(){
+ 357              		.loc 1 35 30 is_stmt 0 view .LVU101
+ 358 0000 70B5     		push	{r4, r5, r6, lr}
+ 359              		.cfi_def_cfa_offset 16
+ 360              		.cfi_offset 4, -16
+ 361              		.cfi_offset 5, -12
+ 362              		.cfi_offset 6, -8
+ 363              		.cfi_offset 14, -4
+ 364 0002 0546     		mov	r5, r0
+ 365 0004 00F11004 		add	r4, r0, #16
+ 366 0008 00F12C06 		add	r6, r0, #44
+ 367              	.LVL20:
+ 368              	.L17:
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 11
+
+
+ 369              	.LBB115:
+ 370              	.LBB106:
+  37:SuperSawOsc.cpp ****             float rando = rand() / RAND_MAX;
+ 371              		.loc 1 37 13 is_stmt 1 view .LVU102
+ 372              		.loc 1 37 31 is_stmt 0 view .LVU103
+ 373 000c FFF7FEFF 		bl	rand
+ 374              	.LVL21:
+  38:SuperSawOsc.cpp ****             float newPhase = rando + phases_[ i ],
+  39:SuperSawOsc.cpp ****                 delta;
+  40:SuperSawOsc.cpp ****             /*
+  41:SuperSawOsc.cpp ****             PhaseAdd CAN'T SET THE PHASE HIGHER THAN 1.0, SO WE NEED TO KEEP TRACK
+  42:SuperSawOsc.cpp ****             OF IT AND IF OUR NEW PHASE IS GREATER THAN 1, WE NEED TO HANDLE IT
+  43:SuperSawOsc.cpp ****             */
+  44:SuperSawOsc.cpp ****             if( newPhase > 1.0 ) {
+  45:SuperSawOsc.cpp ****                 delta = 1.0 - rando;
+ 375              		.loc 1 45 17 is_stmt 1 view .LVU104
+  37:SuperSawOsc.cpp ****             float rando = rand() / RAND_MAX;
+ 376              		.loc 1 37 34 is_stmt 0 view .LVU105
+ 377 0010 134B     		ldr	r3, .L21
+  38:SuperSawOsc.cpp ****             float newPhase = rando + phases_[ i ],
+ 378              		.loc 1 38 49 view .LVU106
+ 379 0012 B4EC017A 		vldmia.32	r4!, {s14}
+  44:SuperSawOsc.cpp ****                 delta = 1.0 - rando;
+ 380              		.loc 1 44 13 view .LVU107
+ 381 0016 F7EE006A 		vmov.f32	s13, #1.0e+0
+  37:SuperSawOsc.cpp ****             float rando = rand() / RAND_MAX;
+ 382              		.loc 1 37 34 view .LVU108
+ 383 001a 83FB0023 		smull	r2, r3, r3, r0
+ 384 001e C017     		asrs	r0, r0, #31
+ 385              	.LBB107:
+ 386              	.LBB108:
+ 387              		.loc 2 98 42 view .LVU109
+ 388 0020 9FED106A 		vldr.32	s12, .L21+4
+ 389              	.LBE108:
+ 390              	.LBE107:
+  37:SuperSawOsc.cpp ****             float rando = rand() / RAND_MAX;
+ 391              		.loc 1 37 34 view .LVU110
+ 392 0024 C0EB6370 		rsb	r0, r0, r3, asr #29
+  37:SuperSawOsc.cpp ****             float rando = rand() / RAND_MAX;
+ 393              		.loc 1 37 36 view .LVU111
+ 394 0028 07EE900A 		vmov	s15, r0	@ int
+ 395 002c F8EEE77A 		vcvt.f32.s32	s15, s15
+ 396              	.LVL22:
+  38:SuperSawOsc.cpp ****             float newPhase = rando + phases_[ i ],
+ 397              		.loc 1 38 13 is_stmt 1 view .LVU112
+  38:SuperSawOsc.cpp ****             float newPhase = rando + phases_[ i ],
+ 398              		.loc 1 38 19 is_stmt 0 view .LVU113
+ 399 0030 37EE277A 		vadd.f32	s14, s14, s15
+ 400              	.LVL23:
+  44:SuperSawOsc.cpp ****                 delta = 1.0 - rando;
+ 401              		.loc 1 44 13 is_stmt 1 view .LVU114
+ 402 0034 B4EEE67A 		vcmpe.f32	s14, s13
+ 403 0038 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 404 003c 03DD     		ble	.L15
+ 405              		.loc 1 45 23 is_stmt 0 view .LVU115
+ 406 003e 76EEE77A 		vsub.f32	s15, s13, s15
+ 407              	.LVL24:
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 12
+
+
+  46:SuperSawOsc.cpp ****                 newPhase = newPhase - 1.0;   
+ 408              		.loc 1 46 17 is_stmt 1 view .LVU116
+ 409              		.loc 1 46 26 is_stmt 0 view .LVU117
+ 410 0042 37EE667A 		vsub.f32	s14, s14, s13
+ 411              	.LVL25:
+ 412              	.L15:
+  47:SuperSawOsc.cpp ****             } else delta = rando;
+  48:SuperSawOsc.cpp ****             phases_[ i ] = newPhase;
+ 413              		.loc 1 48 13 is_stmt 1 discriminator 2 view .LVU118
+ 414              	.LBE106:
+  36:SuperSawOsc.cpp ****             float rando = rand() / RAND_MAX;
+ 415              		.loc 1 36 27 is_stmt 0 discriminator 2 view .LVU119
+ 416 0046 2835     		adds	r5, r5, #40
+ 417              	.LBB113:
+ 418              		.loc 1 48 26 discriminator 2 view .LVU120
+ 419 0048 04ED017A 		vstr.32	s14, [r4, #-4]
+  49:SuperSawOsc.cpp ****             superSaws_[ i ].PhaseAdd( delta );
+ 420              		.loc 1 49 13 is_stmt 1 discriminator 2 view .LVU121
+ 421              	.LVL26:
+ 422              	.LBB111:
+ 423              	.LBI107:
+ 424              		.loc 2 98 10 discriminator 2 view .LVU122
+ 425              	.LBB109:
+ 426              		.loc 2 98 35 discriminator 2 view .LVU123
+ 427              	.LBE109:
+ 428              	.LBE111:
+ 429              	.LBE113:
+  36:SuperSawOsc.cpp ****             float rando = rand() / RAND_MAX;
+ 430              		.loc 1 36 27 is_stmt 0 discriminator 2 view .LVU124
+ 431 004c B442     		cmp	r4, r6
+ 432              	.LBB114:
+ 433              	.LBB112:
+ 434              	.LBB110:
+ 435              		.loc 2 98 42 discriminator 2 view .LVU125
+ 436 004e 95ED367A 		vldr.32	s14, [r5, #216]
+ 437              	.LVL27:
+ 438              		.loc 2 98 42 discriminator 2 view .LVU126
+ 439 0052 A7EE867A 		vfma.f32	s14, s15, s12
+ 440 0056 85ED367A 		vstr.32	s14, [r5, #216]
+ 441              	.LVL28:
+ 442              		.loc 2 98 42 discriminator 2 view .LVU127
+ 443              	.LBE110:
+ 444              	.LBE112:
+ 445              	.LBE114:
+  36:SuperSawOsc.cpp ****             float rando = rand() / RAND_MAX;
+ 446              		.loc 1 36 9 is_stmt 1 discriminator 2 view .LVU128
+  36:SuperSawOsc.cpp ****             float rando = rand() / RAND_MAX;
+ 447              		.loc 1 36 27 discriminator 2 view .LVU129
+ 448 005a D7D1     		bne	.L17
+ 449              	.LBE115:
+  50:SuperSawOsc.cpp ****         }
+  51:SuperSawOsc.cpp ****     }
+ 450              		.loc 1 51 5 is_stmt 0 view .LVU130
+ 451 005c 70BD     		pop	{r4, r5, r6, pc}
+ 452              	.LVL29:
+ 453              	.L22:
+ 454              		.loc 1 51 5 view .LVU131
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 13
+
+
+ 455 005e 00BF     		.align	2
+ 456              	.L21:
+ 457 0060 01000040 		.word	1073741825
+ 458 0064 DB0FC940 		.word	1086918619
+ 459              		.cfi_endproc
+ 460              	.LFE4788:
+ 462              		.section	.text._ZN7daisysp11SuperSawOsc8SetDriftEf,"ax",%progbits
+ 463              		.align	1
+ 464              		.p2align 2,,3
+ 465              		.global	_ZN7daisysp11SuperSawOsc8SetDriftEf
+ 466              		.syntax unified
+ 467              		.thumb
+ 468              		.thumb_func
+ 469              		.fpu fpv5-d16
+ 471              	_ZN7daisysp11SuperSawOsc8SetDriftEf:
+ 472              	.LVL30:
+ 473              	.LFB4789:
+  52:SuperSawOsc.cpp ****     void SuperSawOsc::SetDrift( float drift ){
+ 474              		.loc 1 52 46 is_stmt 1 view -0
+ 475              		.cfi_startproc
+ 476              		@ args = 0, pretend = 0, frame = 0
+ 477              		@ frame_needed = 0, uses_anonymous_args = 0
+  53:SuperSawOsc.cpp ****         drift_ = drift;
+ 478              		.loc 1 53 9 view .LVU133
+  54:SuperSawOsc.cpp ****         intensityKnobCurveIndex_ = drift * CURVE_POINTS;
+ 479              		.loc 1 54 42 is_stmt 0 view .LVU134
+ 480 0000 B3EE017A 		vmov.f32	s14, #1.7e+1
+ 481              	.LBB128:
+ 482              	.LBB129:
+ 483              	.LBB130:
+  55:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST AMPLITUDES
+  56:SuperSawOsc.cpp **** 			superSaws_[ i ].SetAmp( 
+  57:SuperSawOsc.cpp **** 				i == 3?
+  58:SuperSawOsc.cpp **** 					1.0 - fmap( drift, 0.0, ampAmounts_[ i ] ) :
+  59:SuperSawOsc.cpp **** 					lookupAmp( drift ) * ampAmounts_[ i ]
+  60:SuperSawOsc.cpp **** 			);
+  61:SuperSawOsc.cpp **** 		}
+  62:SuperSawOsc.cpp ****     }
+  63:SuperSawOsc.cpp ****     void SuperSawOsc::SetShift( float shift ){
+  64:SuperSawOsc.cpp ****         shift_ = shift;
+  65:SuperSawOsc.cpp ****         detuneKnobCurveIndex_ = shift * CURVE_POINTS;
+  66:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST FREQUENCIES
+  67:SuperSawOsc.cpp **** 			superSaws_[ i ].SetFreq( 
+  68:SuperSawOsc.cpp **** 				freq_ + 
+  69:SuperSawOsc.cpp **** 				lookupDetune( shift ) * detunes_[ i ] * freq_
+  70:SuperSawOsc.cpp **** 			);
+  71:SuperSawOsc.cpp **** 		}
+  72:SuperSawOsc.cpp ****     }
+  73:SuperSawOsc.cpp ****     float SuperSawOsc::lookupDetune( float knobAmount ){
+  74:SuperSawOsc.cpp ****         float minDetune = detuneLookupTable_[ detuneKnobCurveIndex_ ];
+  75:SuperSawOsc.cpp ****         float maxDetune = detuneLookupTable_[ detuneKnobCurveIndex_ + 1 ];
+  76:SuperSawOsc.cpp ****         float minCurveValue = ( float )detuneKnobCurveIndex_ / CURVE_POINTS;
+  77:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+  78:SuperSawOsc.cpp ****         return minDetune + ( ( maxDetune - minDetune ) * ( ( knobAmount - minCurveValue ) / ( maxCu
+  79:SuperSawOsc.cpp ****     }
+  80:SuperSawOsc.cpp ****     float SuperSawOsc::lookupAmp( float knobAmount ){
+  81:SuperSawOsc.cpp ****         float minAmp = ampLookupTable_[ intensityKnobCurveIndex_  ];
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 14
+
+
+  82:SuperSawOsc.cpp ****         float maxAmp = ampLookupTable_[ intensityKnobCurveIndex_ + 1];
+  83:SuperSawOsc.cpp ****         float minCurveValue = ( float )intensityKnobCurveIndex_ / CURVE_POINTS;
+  84:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )intensityKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+  85:SuperSawOsc.cpp ****         return minAmp + ( ( maxAmp - minAmp ) * ( ( knobAmount - minCurveValue ) / ( maxCurveValue 
+ 484              		.loc 1 85 82 view .LVU135
+ 485 0004 0123     		movs	r3, #1
+  84:SuperSawOsc.cpp ****         return minAmp + ( ( maxAmp - minAmp ) * ( ( knobAmount - minCurveValue ) / ( maxCurveValue 
+ 486              		.loc 1 84 67 view .LVU136
+ 487 0006 F7EE006A 		vmov.f32	s13, #1.0e+0
+ 488 000a 0246     		mov	r2, r0
+ 489 000c 00F14801 		add	r1, r0, #72
+ 490              	.LBE130:
+ 491              	.LBE129:
+ 492              	.LBE128:
+  53:SuperSawOsc.cpp ****         intensityKnobCurveIndex_ = drift * CURVE_POINTS;
+ 493              		.loc 1 53 16 view .LVU137
+ 494 0010 80ED020A 		vstr.32	s0, [r0, #8]
+  54:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST AMPLITUDES
+ 495              		.loc 1 54 9 is_stmt 1 view .LVU138
+  54:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST AMPLITUDES
+ 496              		.loc 1 54 42 is_stmt 0 view .LVU139
+ 497 0014 60EE077A 		vmul.f32	s15, s0, s14
+  52:SuperSawOsc.cpp ****         drift_ = drift;
+ 498              		.loc 1 52 46 view .LVU140
+ 499 0018 00B5     		push	{lr}
+ 500              		.cfi_def_cfa_offset 4
+ 501              		.cfi_offset 14, -4
+  54:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST AMPLITUDES
+ 502              		.loc 1 54 34 view .LVU141
+ 503 001a FDEEE77A 		vcvt.s32.f32	s15, s15
+ 504              	.LBB162:
+ 505              	.LBB136:
+ 506              	.LBB131:
+  83:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )intensityKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 507              		.loc 1 83 31 view .LVU142
+ 508 001e B8EEE76A 		vcvt.f32.s32	s12, s15
+ 509 0022 17EE90CA 		vmov	ip, s15	@ int
+ 510              	.LBE131:
+ 511              	.LBE136:
+ 512              	.LBE162:
+  54:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST AMPLITUDES
+ 513              		.loc 1 54 34 view .LVU143
+ 514 0026 C0ED887A 		vstr.32	s15, [r0, #544]	@ int
+  55:SuperSawOsc.cpp **** 			superSaws_[ i ].SetAmp( 
+ 515              		.loc 1 55 9 is_stmt 1 view .LVU144
+ 516              	.LVL31:
+ 517              	.LBB163:
+  55:SuperSawOsc.cpp **** 			superSaws_[ i ].SetAmp( 
+ 518              		.loc 1 55 27 view .LVU145
+ 519 002a 4FEA8C0E 		lsl	lr, ip, #2
+ 520              	.LBB137:
+ 521              	.LBB132:
+  84:SuperSawOsc.cpp ****         return minAmp + ( ( maxAmp - minAmp ) * ( ( knobAmount - minCurveValue ) / ( maxCurveValue 
+ 522              		.loc 1 84 67 is_stmt 0 view .LVU146
+ 523 002e 76EE266A 		vadd.f32	s13, s12, s13
+  83:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )intensityKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 524              		.loc 1 83 15 view .LVU147
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 15
+
+
+ 525 0032 C6EE077A 		vdiv.f32	s15, s12, s14
+  84:SuperSawOsc.cpp ****         return minAmp + ( ( maxAmp - minAmp ) * ( ( knobAmount - minCurveValue ) / ( maxCurveValue 
+ 526              		.loc 1 84 15 view .LVU148
+ 527 0036 86EE876A 		vdiv.f32	s12, s13, s14
+ 528              		.loc 1 85 64 view .LVU149
+ 529 003a 70EE676A 		vsub.f32	s13, s0, s15
+ 530              		.loc 1 85 100 view .LVU150
+ 531 003e 86EE277A 		vdiv.f32	s14, s12, s15
+ 532              		.loc 1 85 82 view .LVU151
+ 533 0042 86EE876A 		vdiv.f32	s12, s13, s14
+ 534 0046 12E0     		b	.L27
+ 535              	.LVL32:
+ 536              	.L24:
+  81:SuperSawOsc.cpp ****         float maxAmp = ampLookupTable_[ intensityKnobCurveIndex_ + 1];
+ 537              		.loc 1 81 15 view .LVU152
+ 538 0048 DCED2A7A 		vldr.32	s15, [ip, #168]
+ 539              	.LVL33:
+  82:SuperSawOsc.cpp ****         float minCurveValue = ( float )intensityKnobCurveIndex_ / CURVE_POINTS;
+ 540              		.loc 1 82 9 is_stmt 1 view .LVU153
+  83:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )intensityKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 541              		.loc 1 83 9 view .LVU154
+  84:SuperSawOsc.cpp ****         return minAmp + ( ( maxAmp - minAmp ) * ( ( knobAmount - minCurveValue ) / ( maxCurveValue 
+ 542              		.loc 1 84 9 view .LVU155
+ 543              		.loc 1 85 9 view .LVU156
+ 544              	.LBE132:
+ 545              	.LBE137:
+  55:SuperSawOsc.cpp **** 			superSaws_[ i ].SetAmp( 
+ 546              		.loc 1 55 27 is_stmt 0 view .LVU157
+ 547 004c 072B     		cmp	r3, #7
+ 548              	.LBB138:
+ 549              	.LBB133:
+ 550              		.loc 1 85 36 view .LVU158
+ 551 004e DCED2B6A 		vldr.32	s13, [ip, #172]
+ 552              	.LBE133:
+ 553              	.LBE138:
+  56:SuperSawOsc.cpp **** 				i == 3?
+ 554              		.loc 1 56 26 view .LVU159
+ 555 0052 91ED007A 		vldr.32	s14, [r1]
+ 556              	.LBB139:
+ 557              	.LBB134:
+ 558              		.loc 1 85 36 view .LVU160
+ 559 0056 76EEE76A 		vsub.f32	s13, s13, s15
+ 560              		.loc 1 85 120 view .LVU161
+ 561 005a E6EE867A 		vfma.f32	s15, s13, s12
+ 562              	.LVL34:
+ 563              		.loc 1 85 120 view .LVU162
+ 564              	.LBE134:
+ 565              	.LBE139:
+ 566              	.LBB140:
+ 567              	.LBI140:
+  67:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the waveform to be synthesized by the Process() function.
+ 568              		.loc 2 67 17 is_stmt 1 view .LVU163
+ 569              	.LBB141:
+  67:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the waveform to be synthesized by the Process() function.
+ 570              		.loc 2 67 41 view .LVU164
+ 571              	.LBE141:
+ 572              	.LBE140:
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 16
+
+
+  56:SuperSawOsc.cpp **** 				i == 3?
+ 573              		.loc 1 56 26 is_stmt 0 view .LVU165
+ 574 005e 67EE277A 		vmul.f32	s15, s14, s15
+ 575              	.LVL35:
+ 576              	.LBB145:
+ 577              	.LBB142:
+  67:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the waveform to be synthesized by the Process() function.
+ 578              		.loc 2 67 46 view .LVU166
+ 579 0062 C2ED3C7A 		vstr.32	s15, [r2, #240]
+ 580              	.LVL36:
+  67:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the waveform to be synthesized by the Process() function.
+ 581              		.loc 2 67 46 view .LVU167
+ 582              	.LBE142:
+ 583              	.LBE145:
+  55:SuperSawOsc.cpp **** 			superSaws_[ i ].SetAmp( 
+ 584              		.loc 1 55 9 is_stmt 1 view .LVU168
+  55:SuperSawOsc.cpp **** 			superSaws_[ i ].SetAmp( 
+ 585              		.loc 1 55 27 view .LVU169
+ 586 0066 19D0     		beq	.L23
+ 587              	.LVL37:
+ 588              	.L25:
+  55:SuperSawOsc.cpp **** 			superSaws_[ i ].SetAmp( 
+ 589              		.loc 1 55 27 is_stmt 0 view .LVU170
+ 590 0068 0133     		adds	r3, r3, #1
+ 591 006a 2832     		adds	r2, r2, #40
+ 592 006c 0431     		adds	r1, r1, #4
+ 593              	.L27:
+ 594              	.LVL38:
+  56:SuperSawOsc.cpp **** 				i == 3?
+ 595              		.loc 1 56 4 is_stmt 1 view .LVU171
+ 596              	.LBB146:
+ 597              	.LBI129:
+  80:SuperSawOsc.cpp ****         float minAmp = ampLookupTable_[ intensityKnobCurveIndex_  ];
+ 598              		.loc 1 80 11 view .LVU172
+ 599              	.LBB135:
+  81:SuperSawOsc.cpp ****         float maxAmp = ampLookupTable_[ intensityKnobCurveIndex_ + 1];
+ 600              		.loc 1 81 9 view .LVU173
+ 601              	.LBE135:
+ 602              	.LBE146:
+  56:SuperSawOsc.cpp **** 				i == 3?
+ 603              		.loc 1 56 26 is_stmt 0 view .LVU174
+ 604 006e 042B     		cmp	r3, #4
+ 605 0070 00EB0E0C 		add	ip, r0, lr
+ 606 0074 E8D1     		bne	.L24
+ 607              	.LBB147:
+ 608              	.LBB148:
+ 609              		.file 4 "../../DaisySP//Source/Utility/dsp.h"
+   1:../../DaisySP//Source/Utility/dsp.h **** /** Helpful defines, functions, and other utilities for use in/with daisysp modules.
+   2:../../DaisySP//Source/Utility/dsp.h **** */
+   3:../../DaisySP//Source/Utility/dsp.h **** #pragma once
+   4:../../DaisySP//Source/Utility/dsp.h **** #ifndef DSY_CORE_DSP
+   5:../../DaisySP//Source/Utility/dsp.h **** #define DSY_CORE_DSP
+   6:../../DaisySP//Source/Utility/dsp.h **** #include <cassert>
+   7:../../DaisySP//Source/Utility/dsp.h **** #include <cstdint>
+   8:../../DaisySP//Source/Utility/dsp.h **** #include <random>
+   9:../../DaisySP//Source/Utility/dsp.h **** #include <cmath>
+  10:../../DaisySP//Source/Utility/dsp.h **** 
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 17
+
+
+  11:../../DaisySP//Source/Utility/dsp.h **** /** PIs
+  12:../../DaisySP//Source/Utility/dsp.h **** */
+  13:../../DaisySP//Source/Utility/dsp.h **** #define PI_F 3.1415927410125732421875f
+  14:../../DaisySP//Source/Utility/dsp.h **** #define TWOPI_F (2.0f * PI_F)
+  15:../../DaisySP//Source/Utility/dsp.h **** #define HALFPI_F (PI_F * 0.5f)
+  16:../../DaisySP//Source/Utility/dsp.h **** #define DSY_MIN(in, mn) (in < mn ? in : mn)
+  17:../../DaisySP//Source/Utility/dsp.h **** #define DSY_MAX(in, mx) (in > mx ? in : mx)
+  18:../../DaisySP//Source/Utility/dsp.h **** #define DSY_CLAMP(in, mn, mx) (DSY_MIN(DSY_MAX(in, mn), mx))
+  19:../../DaisySP//Source/Utility/dsp.h **** #define DSY_COUNTOF(_arr) (sizeof(_arr) / sizeof(_arr[0]))
+  20:../../DaisySP//Source/Utility/dsp.h **** 
+  21:../../DaisySP//Source/Utility/dsp.h **** namespace daisysp
+  22:../../DaisySP//Source/Utility/dsp.h **** {
+  23:../../DaisySP//Source/Utility/dsp.h **** //Avoids division for random floats. e.g. rand() * kRandFrac
+  24:../../DaisySP//Source/Utility/dsp.h **** static constexpr float kRandFrac = 1.f / (float)RAND_MAX;
+  25:../../DaisySP//Source/Utility/dsp.h **** 
+  26:../../DaisySP//Source/Utility/dsp.h **** //Convert from semitones to other units. e.g. 2 ^ (kOneTwelfth * x)
+  27:../../DaisySP//Source/Utility/dsp.h **** static constexpr float kOneTwelfth = 1.f / 12.f;
+  28:../../DaisySP//Source/Utility/dsp.h **** 
+  29:../../DaisySP//Source/Utility/dsp.h **** /** efficient floating point min/max
+  30:../../DaisySP//Source/Utility/dsp.h **** c/o stephen mccaul
+  31:../../DaisySP//Source/Utility/dsp.h **** */
+  32:../../DaisySP//Source/Utility/dsp.h **** inline float fmax(float a, float b)
+  33:../../DaisySP//Source/Utility/dsp.h **** {
+  34:../../DaisySP//Source/Utility/dsp.h ****     float r;
+  35:../../DaisySP//Source/Utility/dsp.h **** #ifdef __arm__
+  36:../../DaisySP//Source/Utility/dsp.h ****     asm("vmaxnm.f32 %[d], %[n], %[m]" : [d] "=t"(r) : [n] "t"(a), [m] "t"(b) :);
+  37:../../DaisySP//Source/Utility/dsp.h **** #else
+  38:../../DaisySP//Source/Utility/dsp.h ****     r = (a > b) ? a : b;
+  39:../../DaisySP//Source/Utility/dsp.h **** #endif // __arm__
+  40:../../DaisySP//Source/Utility/dsp.h ****     return r;
+  41:../../DaisySP//Source/Utility/dsp.h **** }
+  42:../../DaisySP//Source/Utility/dsp.h **** 
+  43:../../DaisySP//Source/Utility/dsp.h **** inline float fmin(float a, float b)
+  44:../../DaisySP//Source/Utility/dsp.h **** {
+  45:../../DaisySP//Source/Utility/dsp.h ****     float r;
+  46:../../DaisySP//Source/Utility/dsp.h **** #ifdef __arm__
+  47:../../DaisySP//Source/Utility/dsp.h ****     asm("vminnm.f32 %[d], %[n], %[m]" : [d] "=t"(r) : [n] "t"(a), [m] "t"(b) :);
+  48:../../DaisySP//Source/Utility/dsp.h **** #else
+  49:../../DaisySP//Source/Utility/dsp.h ****     r = (a < b) ? a : b;
+  50:../../DaisySP//Source/Utility/dsp.h **** #endif // __arm__
+  51:../../DaisySP//Source/Utility/dsp.h ****     return r;
+  52:../../DaisySP//Source/Utility/dsp.h **** }
+  53:../../DaisySP//Source/Utility/dsp.h **** 
+  54:../../DaisySP//Source/Utility/dsp.h **** /** quick fp clamp
+  55:../../DaisySP//Source/Utility/dsp.h **** */
+  56:../../DaisySP//Source/Utility/dsp.h **** inline float fclamp(float in, float min, float max)
+  57:../../DaisySP//Source/Utility/dsp.h **** {
+  58:../../DaisySP//Source/Utility/dsp.h ****     return fmin(fmax(in, min), max);
+  59:../../DaisySP//Source/Utility/dsp.h **** }
+  60:../../DaisySP//Source/Utility/dsp.h **** 
+  61:../../DaisySP//Source/Utility/dsp.h **** /** From Musicdsp.org "Fast power and root estimates for 32bit floats)
+  62:../../DaisySP//Source/Utility/dsp.h **** Original code by Stefan Stenzel
+  63:../../DaisySP//Source/Utility/dsp.h **** These are approximations
+  64:../../DaisySP//Source/Utility/dsp.h **** */
+  65:../../DaisySP//Source/Utility/dsp.h **** inline float fastpower(float f, int n)
+  66:../../DaisySP//Source/Utility/dsp.h **** {
+  67:../../DaisySP//Source/Utility/dsp.h ****     long *lp, l;
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 18
+
+
+  68:../../DaisySP//Source/Utility/dsp.h ****     lp = (long *)(&f);
+  69:../../DaisySP//Source/Utility/dsp.h ****     l  = *lp;
+  70:../../DaisySP//Source/Utility/dsp.h ****     l -= 0x3F800000;
+  71:../../DaisySP//Source/Utility/dsp.h ****     l <<= (n - 1);
+  72:../../DaisySP//Source/Utility/dsp.h ****     l += 0x3F800000;
+  73:../../DaisySP//Source/Utility/dsp.h ****     *lp = l;
+  74:../../DaisySP//Source/Utility/dsp.h ****     return f;
+  75:../../DaisySP//Source/Utility/dsp.h **** }
+  76:../../DaisySP//Source/Utility/dsp.h **** 
+  77:../../DaisySP//Source/Utility/dsp.h **** inline float fastroot(float f, int n)
+  78:../../DaisySP//Source/Utility/dsp.h **** {
+  79:../../DaisySP//Source/Utility/dsp.h ****     long *lp, l;
+  80:../../DaisySP//Source/Utility/dsp.h ****     lp = (long *)(&f);
+  81:../../DaisySP//Source/Utility/dsp.h ****     l  = *lp;
+  82:../../DaisySP//Source/Utility/dsp.h ****     l -= 0x3F800000;
+  83:../../DaisySP//Source/Utility/dsp.h ****     l >>= (n = 1);
+  84:../../DaisySP//Source/Utility/dsp.h ****     l += 0x3F800000;
+  85:../../DaisySP//Source/Utility/dsp.h ****     *lp = l;
+  86:../../DaisySP//Source/Utility/dsp.h ****     return f;
+  87:../../DaisySP//Source/Utility/dsp.h **** }
+  88:../../DaisySP//Source/Utility/dsp.h **** 
+  89:../../DaisySP//Source/Utility/dsp.h **** /** From http://openaudio.blogspot.com/2017/02/faster-log10-and-pow.html
+  90:../../DaisySP//Source/Utility/dsp.h **** No approximation, pow10f(x) gives a 90% speed increase over powf(10.f, x)
+  91:../../DaisySP//Source/Utility/dsp.h **** */
+  92:../../DaisySP//Source/Utility/dsp.h **** inline float pow10f(float f)
+  93:../../DaisySP//Source/Utility/dsp.h **** {
+  94:../../DaisySP//Source/Utility/dsp.h ****     return expf(2.302585092994046f * f);
+  95:../../DaisySP//Source/Utility/dsp.h **** }
+  96:../../DaisySP//Source/Utility/dsp.h **** 
+  97:../../DaisySP//Source/Utility/dsp.h **** /* Original code for fastlog2f by Dr. Paul Beckmann from the ARM community forum, adapted from the 
+  98:../../DaisySP//Source/Utility/dsp.h **** About 25% performance increase over std::log10f
+  99:../../DaisySP//Source/Utility/dsp.h **** */
+ 100:../../DaisySP//Source/Utility/dsp.h **** inline float fastlog2f(float f)
+ 101:../../DaisySP//Source/Utility/dsp.h **** {
+ 102:../../DaisySP//Source/Utility/dsp.h ****     float frac;
+ 103:../../DaisySP//Source/Utility/dsp.h ****     int   exp;
+ 104:../../DaisySP//Source/Utility/dsp.h ****     frac = frexpf(fabsf(f), &exp);
+ 105:../../DaisySP//Source/Utility/dsp.h ****     f    = 1.23149591368684f;
+ 106:../../DaisySP//Source/Utility/dsp.h ****     f *= frac;
+ 107:../../DaisySP//Source/Utility/dsp.h ****     f += -4.11852516267426f;
+ 108:../../DaisySP//Source/Utility/dsp.h ****     f *= frac;
+ 109:../../DaisySP//Source/Utility/dsp.h ****     f += 6.02197014179219f;
+ 110:../../DaisySP//Source/Utility/dsp.h ****     f *= frac;
+ 111:../../DaisySP//Source/Utility/dsp.h ****     f += -3.13396450166353f;
+ 112:../../DaisySP//Source/Utility/dsp.h ****     f += exp;
+ 113:../../DaisySP//Source/Utility/dsp.h ****     return (f);
+ 114:../../DaisySP//Source/Utility/dsp.h **** }
+ 115:../../DaisySP//Source/Utility/dsp.h **** 
+ 116:../../DaisySP//Source/Utility/dsp.h **** inline float fastlog10f(float f)
+ 117:../../DaisySP//Source/Utility/dsp.h **** {
+ 118:../../DaisySP//Source/Utility/dsp.h ****     return fastlog2f(f) * 0.3010299956639812f;
+ 119:../../DaisySP//Source/Utility/dsp.h **** }
+ 120:../../DaisySP//Source/Utility/dsp.h **** 
+ 121:../../DaisySP//Source/Utility/dsp.h **** /** Midi to frequency helper
+ 122:../../DaisySP//Source/Utility/dsp.h **** */
+ 123:../../DaisySP//Source/Utility/dsp.h **** inline float mtof(float m)
+ 124:../../DaisySP//Source/Utility/dsp.h **** {
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 19
+
+
+ 125:../../DaisySP//Source/Utility/dsp.h ****     return powf(2, (m - 69.0f) / 12.0f) * 440.0f;
+ 126:../../DaisySP//Source/Utility/dsp.h **** }
+ 127:../../DaisySP//Source/Utility/dsp.h **** 
+ 128:../../DaisySP//Source/Utility/dsp.h **** 
+ 129:../../DaisySP//Source/Utility/dsp.h **** /** one pole lpf
+ 130:../../DaisySP//Source/Utility/dsp.h **** out is passed by reference, and must be retained between
+ 131:../../DaisySP//Source/Utility/dsp.h **** calls to properly filter the signal
+ 132:../../DaisySP//Source/Utility/dsp.h **** coeff can be calculated:
+ 133:../../DaisySP//Source/Utility/dsp.h **** coeff = 1.0 / (time * sample_rate) ; where time is in seconds
+ 134:../../DaisySP//Source/Utility/dsp.h **** */
+ 135:../../DaisySP//Source/Utility/dsp.h **** inline void fonepole(float &out, float in, float coeff)
+ 136:../../DaisySP//Source/Utility/dsp.h **** {
+ 137:../../DaisySP//Source/Utility/dsp.h ****     out += coeff * (in - out);
+ 138:../../DaisySP//Source/Utility/dsp.h **** }
+ 139:../../DaisySP//Source/Utility/dsp.h **** 
+ 140:../../DaisySP//Source/Utility/dsp.h **** /** Curves to use with the fmap function */
+ 141:../../DaisySP//Source/Utility/dsp.h **** enum class Mapping
+ 142:../../DaisySP//Source/Utility/dsp.h **** {
+ 143:../../DaisySP//Source/Utility/dsp.h ****     LINEAR,
+ 144:../../DaisySP//Source/Utility/dsp.h ****     EXP,
+ 145:../../DaisySP//Source/Utility/dsp.h ****     LOG,
+ 146:../../DaisySP//Source/Utility/dsp.h **** };
+ 147:../../DaisySP//Source/Utility/dsp.h **** 
+ 148:../../DaisySP//Source/Utility/dsp.h **** /** Maps a float between a specified range, using a specified curve. 
+ 149:../../DaisySP//Source/Utility/dsp.h ****  * 
+ 150:../../DaisySP//Source/Utility/dsp.h ****  *  \param in a value between 0 to 1 that will be mapped to the new range.
+ 151:../../DaisySP//Source/Utility/dsp.h ****  *  \param min the new minimum value
+ 152:../../DaisySP//Source/Utility/dsp.h ****  *  \param max the new maxmimum value
+ 153:../../DaisySP//Source/Utility/dsp.h ****  *  \param curve a Mapping Value to adjust the response curve of the transformation
+ 154:../../DaisySP//Source/Utility/dsp.h ****  *               defaults to Linear. @see Mapping
+ 155:../../DaisySP//Source/Utility/dsp.h ****  * 
+ 156:../../DaisySP//Source/Utility/dsp.h ****  *  When using the log curve min and max, must be greater than zero.
+ 157:../../DaisySP//Source/Utility/dsp.h ****  * 
+ 158:../../DaisySP//Source/Utility/dsp.h ****  *  \retval returns the transformed float within the new range.
+ 159:../../DaisySP//Source/Utility/dsp.h **** */
+ 160:../../DaisySP//Source/Utility/dsp.h **** inline float
+ 161:../../DaisySP//Source/Utility/dsp.h **** fmap(float in, float min, float max, Mapping curve = Mapping::LINEAR)
+ 162:../../DaisySP//Source/Utility/dsp.h **** {
+ 163:../../DaisySP//Source/Utility/dsp.h ****     switch(curve)
+ 164:../../DaisySP//Source/Utility/dsp.h ****     {
+ 165:../../DaisySP//Source/Utility/dsp.h ****         case Mapping::EXP:
+ 166:../../DaisySP//Source/Utility/dsp.h ****             return fclamp(min + (in * in) * (max - min), min, max);
+ 167:../../DaisySP//Source/Utility/dsp.h ****         case Mapping::LOG:
+ 168:../../DaisySP//Source/Utility/dsp.h ****         {
+ 169:../../DaisySP//Source/Utility/dsp.h ****             const float a = 1.f / log10f(max / min);
+ 170:../../DaisySP//Source/Utility/dsp.h ****             return fclamp(min * powf(10, in / a), min, max);
+ 171:../../DaisySP//Source/Utility/dsp.h ****         }
+ 172:../../DaisySP//Source/Utility/dsp.h ****         case Mapping::LINEAR:
+ 173:../../DaisySP//Source/Utility/dsp.h ****         default: return fclamp(min + in * (max - min), min, max);
+ 610              		.loc 4 173 31 discriminator 1 view .LVU175
+ 611 0076 DFED0A5A 		vldr.32	s11, .L29
+ 612              	.LBE148:
+ 613              	.LBE147:
+ 614              	.LBB157:
+ 615              	.LBB143:
+  67:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the waveform to be synthesized by the Process() function.
+ 616              		.loc 2 67 46 discriminator 1 view .LVU176
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 20
+
+
+ 617 007a B7EE007A 		vmov.f32	s14, #1.0e+0
+ 618              	.LBE143:
+ 619              	.LBE157:
+  58:SuperSawOsc.cpp **** 					lookupAmp( drift ) * ampAmounts_[ i ]
+ 620              		.loc 1 58 16 discriminator 1 view .LVU177
+ 621 007e D0ED156A 		vldr.32	s13, [r0, #84]
+ 622              	.LVL39:
+ 623              	.LBB158:
+ 624              	.LBI147:
+ 161:../../DaisySP//Source/Utility/dsp.h **** {
+ 625              		.loc 4 161 1 is_stmt 1 discriminator 1 view .LVU178
+ 626              	.LBE158:
+ 627              	.LBE163:
+ 163:../../DaisySP//Source/Utility/dsp.h ****     {
+ 628              		.loc 4 163 5 discriminator 1 view .LVU179
+ 629              	.LBB164:
+ 630              	.LBB159:
+ 631              	.LBB155:
+ 172:../../DaisySP//Source/Utility/dsp.h ****         default: return fclamp(min + in * (max - min), min, max);
+ 632              		.loc 4 172 9 discriminator 1 view .LVU180
+ 633              		.loc 4 173 9 discriminator 1 view .LVU181
+ 634              		.loc 4 173 18 discriminator 1 view .LVU182
+ 635              		.loc 4 173 31 is_stmt 0 discriminator 1 view .LVU183
+ 636 0082 F0EE657A 		vmov.f32	s15, s11
+ 637 0086 E6EE807A 		vfma.f32	s15, s13, s0
+ 638              	.LVL40:
+ 639              	.LBB149:
+ 640              	.LBI149:
+  56:../../DaisySP//Source/Utility/dsp.h **** {
+ 641              		.loc 4 56 14 is_stmt 1 discriminator 1 view .LVU184
+ 642              	.LBE149:
+ 643              	.LBE155:
+ 644              	.LBE159:
+ 645              	.LBE164:
+  58:../../DaisySP//Source/Utility/dsp.h **** }
+ 646              		.loc 4 58 5 discriminator 1 view .LVU185
+ 647              	.LBB165:
+ 648              	.LBB160:
+ 649              	.LBB156:
+ 650              	.LBB154:
+ 651              	.LBB150:
+ 652              	.LBI150:
+  32:../../DaisySP//Source/Utility/dsp.h **** {
+ 653              		.loc 4 32 14 discriminator 1 view .LVU186
+ 654              	.LBB151:
+  34:../../DaisySP//Source/Utility/dsp.h **** #ifdef __arm__
+ 655              		.loc 4 34 5 discriminator 1 view .LVU187
+  36:../../DaisySP//Source/Utility/dsp.h **** #else
+ 656              		.loc 4 36 5 discriminator 1 view .LVU188
+ 657              		.syntax unified
+ 658              	@ 36 "../../DaisySP//Source/Utility/dsp.h" 1
+ 659 008a C7FEA57A 		vmaxnm.f32 s15, s15, s11
+ 660              	@ 0 "" 2
+ 661              	.LVL41:
+  40:../../DaisySP//Source/Utility/dsp.h **** }
+ 662              		.loc 4 40 5 discriminator 1 view .LVU189
+  40:../../DaisySP//Source/Utility/dsp.h **** }
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 21
+
+
+ 663              		.loc 4 40 5 is_stmt 0 discriminator 1 view .LVU190
+ 664              		.thumb
+ 665              		.syntax unified
+ 666              	.LBE151:
+ 667              	.LBE150:
+ 668              	.LBB152:
+ 669              	.LBI152:
+  43:../../DaisySP//Source/Utility/dsp.h **** {
+ 670              		.loc 4 43 14 is_stmt 1 discriminator 1 view .LVU191
+ 671              	.LBB153:
+  45:../../DaisySP//Source/Utility/dsp.h **** #ifdef __arm__
+ 672              		.loc 4 45 5 discriminator 1 view .LVU192
+  47:../../DaisySP//Source/Utility/dsp.h **** #else
+ 673              		.loc 4 47 5 discriminator 1 view .LVU193
+ 674              		.syntax unified
+ 675              	@ 47 "../../DaisySP//Source/Utility/dsp.h" 1
+ 676 008e C7FEE67A 		vminnm.f32 s15, s15, s13
+ 677              	@ 0 "" 2
+ 678              	.LVL42:
+  51:../../DaisySP//Source/Utility/dsp.h **** }
+ 679              		.loc 4 51 5 discriminator 1 view .LVU194
+  51:../../DaisySP//Source/Utility/dsp.h **** }
+ 680              		.loc 4 51 5 is_stmt 0 discriminator 1 view .LVU195
+ 681              		.thumb
+ 682              		.syntax unified
+ 683              	.LBE153:
+ 684              	.LBE152:
+ 685              	.LBE154:
+ 686              	.LBE156:
+ 687              	.LBE160:
+ 688              	.LBB161:
+  67:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the waveform to be synthesized by the Process() function.
+ 689              		.loc 2 67 17 is_stmt 1 discriminator 1 view .LVU196
+ 690              	.LBB144:
+  67:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the waveform to be synthesized by the Process() function.
+ 691              		.loc 2 67 41 discriminator 1 view .LVU197
+  67:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the waveform to be synthesized by the Process() function.
+ 692              		.loc 2 67 46 is_stmt 0 discriminator 1 view .LVU198
+ 693 0092 77EE677A 		vsub.f32	s15, s14, s15
+ 694              	.LVL43:
+  67:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the waveform to be synthesized by the Process() function.
+ 695              		.loc 2 67 46 discriminator 1 view .LVU199
+ 696 0096 C2ED3C7A 		vstr.32	s15, [r2, #240]
+ 697              	.LVL44:
+  67:../../DaisySP//Source/Synthesis/oscillator.h ****     /** Sets the waveform to be synthesized by the Process() function.
+ 698              		.loc 2 67 46 discriminator 1 view .LVU200
+ 699              	.LBE144:
+ 700              	.LBE161:
+  55:SuperSawOsc.cpp **** 			superSaws_[ i ].SetAmp( 
+ 701              		.loc 1 55 9 is_stmt 1 discriminator 1 view .LVU201
+  55:SuperSawOsc.cpp **** 			superSaws_[ i ].SetAmp( 
+ 702              		.loc 1 55 27 discriminator 1 view .LVU202
+ 703 009a E5E7     		b	.L25
+ 704              	.LVL45:
+ 705              	.L23:
+  55:SuperSawOsc.cpp **** 			superSaws_[ i ].SetAmp( 
+ 706              		.loc 1 55 27 is_stmt 0 discriminator 1 view .LVU203
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 22
+
+
+ 707              	.LBE165:
+  62:SuperSawOsc.cpp ****     void SuperSawOsc::SetShift( float shift ){
+ 708              		.loc 1 62 5 view .LVU204
+ 709 009c 5DF804FB 		ldr	pc, [sp], #4
+ 710              	.L30:
+ 711              		.align	2
+ 712              	.L29:
+ 713 00a0 00000000 		.word	0
+ 714              		.cfi_endproc
+ 715              	.LFE4789:
+ 717              		.section	.text._ZN7daisysp11SuperSawOsc8SetShiftEf,"ax",%progbits
+ 718              		.align	1
+ 719              		.p2align 2,,3
+ 720              		.global	_ZN7daisysp11SuperSawOsc8SetShiftEf
+ 721              		.syntax unified
+ 722              		.thumb
+ 723              		.thumb_func
+ 724              		.fpu fpv5-d16
+ 726              	_ZN7daisysp11SuperSawOsc8SetShiftEf:
+ 727              	.LVL46:
+ 728              	.LFB4790:
+  63:SuperSawOsc.cpp ****         shift_ = shift;
+ 729              		.loc 1 63 46 is_stmt 1 view -0
+ 730              		.cfi_startproc
+ 731              		@ args = 0, pretend = 0, frame = 0
+ 732              		@ frame_needed = 0, uses_anonymous_args = 0
+  64:SuperSawOsc.cpp ****         detuneKnobCurveIndex_ = shift * CURVE_POINTS;
+ 733              		.loc 1 64 9 view .LVU206
+  65:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST FREQUENCIES
+ 734              		.loc 1 65 39 is_stmt 0 view .LVU207
+ 735 0000 F3EE017A 		vmov.f32	s15, #1.7e+1
+  63:SuperSawOsc.cpp ****         shift_ = shift;
+ 736              		.loc 1 63 46 view .LVU208
+ 737 0004 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 738              		.cfi_def_cfa_offset 24
+ 739              		.cfi_offset 3, -24
+ 740              		.cfi_offset 4, -20
+ 741              		.cfi_offset 5, -16
+ 742              		.cfi_offset 6, -12
+ 743              		.cfi_offset 7, -8
+ 744              		.cfi_offset 14, -4
+  65:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST FREQUENCIES
+ 745              		.loc 1 65 39 view .LVU209
+ 746 0006 60EE277A 		vmul.f32	s15, s0, s15
+  63:SuperSawOsc.cpp ****         shift_ = shift;
+ 747              		.loc 1 63 46 view .LVU210
+ 748 000a 0546     		mov	r5, r0
+ 749 000c 00F12C06 		add	r6, r0, #44
+ 750 0010 00F1EC04 		add	r4, r0, #236
+ 751 0014 00F14807 		add	r7, r0, #72
+  65:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST FREQUENCIES
+ 752              		.loc 1 65 31 view .LVU211
+ 753 0018 FDEEE77A 		vcvt.s32.f32	s15, s15
+  63:SuperSawOsc.cpp ****         shift_ = shift;
+ 754              		.loc 1 63 46 view .LVU212
+ 755 001c 2DED028B 		vpush.64	{d8}
+ 756              		.cfi_def_cfa_offset 32
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 23
+
+
+ 757              		.cfi_offset 80, -32
+ 758              		.cfi_offset 81, -28
+  65:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST FREQUENCIES
+ 759              		.loc 1 65 31 view .LVU213
+ 760 0020 17EE903A 		vmov	r3, s15	@ int
+  63:SuperSawOsc.cpp ****         shift_ = shift;
+ 761              		.loc 1 63 46 view .LVU214
+ 762 0024 B0EE408A 		vmov.f32	s16, s0
+  64:SuperSawOsc.cpp ****         detuneKnobCurveIndex_ = shift * CURVE_POINTS;
+ 763              		.loc 1 64 16 view .LVU215
+ 764 0028 80ED030A 		vstr.32	s0, [r0, #12]
+  65:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST FREQUENCIES
+ 765              		.loc 1 65 9 is_stmt 1 view .LVU216
+  65:SuperSawOsc.cpp ****         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST FREQUENCIES
+ 766              		.loc 1 65 31 is_stmt 0 view .LVU217
+ 767 002c C0ED877A 		vstr.32	s15, [r0, #540]	@ int
+  66:SuperSawOsc.cpp **** 			superSaws_[ i ].SetFreq( 
+ 768              		.loc 1 66 9 is_stmt 1 view .LVU218
+ 769              	.LVL47:
+ 770              	.LBB171:
+  66:SuperSawOsc.cpp **** 			superSaws_[ i ].SetFreq( 
+ 771              		.loc 1 66 27 view .LVU219
+ 772 0030 01E0     		b	.L33
+ 773              	.LVL48:
+ 774              	.L35:
+ 775              	.LBB172:
+ 776              	.LBB173:
+  74:SuperSawOsc.cpp ****         float maxDetune = detuneLookupTable_[ detuneKnobCurveIndex_ + 1 ];
+ 777              		.loc 1 74 47 is_stmt 0 view .LVU220
+ 778 0032 D5F81C32 		ldr	r3, [r5, #540]
+ 779              	.L33:
+  74:SuperSawOsc.cpp ****         float maxDetune = detuneLookupTable_[ detuneKnobCurveIndex_ + 1 ];
+ 780              		.loc 1 74 47 view .LVU221
+ 781              	.LBE173:
+ 782              	.LBE172:
+  67:SuperSawOsc.cpp **** 				freq_ + 
+ 783              		.loc 1 67 4 is_stmt 1 discriminator 2 view .LVU222
+ 784              	.LBB178:
+ 785              	.LBB174:
+  76:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 786              		.loc 1 76 31 is_stmt 0 discriminator 2 view .LVU223
+ 787 0036 07EE903A 		vmov	s15, r3	@ int
+  77:SuperSawOsc.cpp ****         return minDetune + ( ( maxDetune - minDetune ) * ( ( knobAmount - minCurveValue ) / ( maxCu
+ 788              		.loc 1 77 64 discriminator 2 view .LVU224
+ 789 003a B7EE006A 		vmov.f32	s12, #1.0e+0
+  76:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 790              		.loc 1 76 15 discriminator 2 view .LVU225
+ 791 003e B3EE015A 		vmov.f32	s10, #1.7e+1
+ 792 0042 05EB8303 		add	r3, r5, r3, lsl #2
+  76:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 793              		.loc 1 76 31 discriminator 2 view .LVU226
+ 794 0046 F8EEE76A 		vcvt.f32.s32	s13, s15
+ 795              	.LBE174:
+ 796              	.LBE178:
+  69:SuperSawOsc.cpp **** 			);
+ 797              		.loc 1 69 41 discriminator 2 view .LVU227
+ 798 004a B6EC017A 		vldmia.32	r6!, {s14}
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 24
+
+
+ 799              	.LBB179:
+ 800              	.LBB175:
+  74:SuperSawOsc.cpp ****         float maxDetune = detuneLookupTable_[ detuneKnobCurveIndex_ + 1 ];
+ 801              		.loc 1 74 15 discriminator 2 view .LVU228
+ 802 004e D3ED197A 		vldr.32	s15, [r3, #100]
+ 803              	.LBE175:
+ 804              	.LBE179:
+ 805              	.LBB180:
+ 806              	.LBB181:
+  61:../../DaisySP//Source/Synthesis/oscillator.h ****     }
+ 807              		.loc 2 61 34 discriminator 2 view .LVU229
+ 808 0052 2046     		mov	r0, r4
+ 809              	.LBE181:
+ 810              	.LBE180:
+  68:SuperSawOsc.cpp **** 				lookupDetune( shift ) * detunes_[ i ] * freq_
+ 811              		.loc 1 68 5 discriminator 2 view .LVU230
+ 812 0054 95ED010A 		vldr.32	s0, [r5, #4]
+ 813              	.LVL49:
+ 814              	.LBB184:
+ 815              	.LBI172:
+  73:SuperSawOsc.cpp ****         float minDetune = detuneLookupTable_[ detuneKnobCurveIndex_ ];
+ 816              		.loc 1 73 11 is_stmt 1 discriminator 2 view .LVU231
+ 817              	.LBB176:
+  74:SuperSawOsc.cpp ****         float maxDetune = detuneLookupTable_[ detuneKnobCurveIndex_ + 1 ];
+ 818              		.loc 1 74 9 discriminator 2 view .LVU232
+  75:SuperSawOsc.cpp ****         float minCurveValue = ( float )detuneKnobCurveIndex_ / CURVE_POINTS;
+ 819              		.loc 1 75 9 discriminator 2 view .LVU233
+  76:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 820              		.loc 1 76 9 discriminator 2 view .LVU234
+ 821              	.LBE176:
+ 822              	.LBE184:
+  66:SuperSawOsc.cpp **** 			superSaws_[ i ].SetFreq( 
+ 823              		.loc 1 66 27 is_stmt 0 discriminator 2 view .LVU235
+ 824 0058 2834     		adds	r4, r4, #40
+ 825              	.LBB185:
+ 826              	.LBB177:
+  77:SuperSawOsc.cpp ****         return minDetune + ( ( maxDetune - minDetune ) * ( ( knobAmount - minCurveValue ) / ( maxCu
+ 827              		.loc 1 77 64 discriminator 2 view .LVU236
+ 828 005a 36EE866A 		vadd.f32	s12, s13, s12
+  76:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 829              		.loc 1 76 15 discriminator 2 view .LVU237
+ 830 005e C6EE855A 		vdiv.f32	s11, s13, s10
+ 831              	.LVL50:
+  77:SuperSawOsc.cpp ****         return minDetune + ( ( maxDetune - minDetune ) * ( ( knobAmount - minCurveValue ) / ( maxCu
+ 832              		.loc 1 77 9 is_stmt 1 discriminator 2 view .LVU238
+  78:SuperSawOsc.cpp ****     }
+ 833              		.loc 1 78 9 discriminator 2 view .LVU239
+  78:SuperSawOsc.cpp ****     }
+ 834              		.loc 1 78 42 is_stmt 0 discriminator 2 view .LVU240
+ 835 0062 D3ED1A6A 		vldr.32	s13, [r3, #104]
+ 836              	.LVL51:
+  77:SuperSawOsc.cpp ****         return minDetune + ( ( maxDetune - minDetune ) * ( ( knobAmount - minCurveValue ) / ( maxCu
+ 837              		.loc 1 77 15 discriminator 2 view .LVU241
+ 838 0066 86EE054A 		vdiv.f32	s8, s12, s10
+  78:SuperSawOsc.cpp ****     }
+ 839              		.loc 1 78 42 discriminator 2 view .LVU242
+ 840 006a 76EEE76A 		vsub.f32	s13, s13, s15
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 25
+
+
+  78:SuperSawOsc.cpp ****     }
+ 841              		.loc 1 78 73 discriminator 2 view .LVU243
+ 842 006e 78EE654A 		vsub.f32	s9, s16, s11
+  78:SuperSawOsc.cpp ****     }
+ 843              		.loc 1 78 109 discriminator 2 view .LVU244
+ 844 0072 84EE255A 		vdiv.f32	s10, s8, s11
+  78:SuperSawOsc.cpp ****     }
+ 845              		.loc 1 78 91 discriminator 2 view .LVU245
+ 846 0076 84EE856A 		vdiv.f32	s12, s9, s10
+  78:SuperSawOsc.cpp ****     }
+ 847              		.loc 1 78 129 discriminator 2 view .LVU246
+ 848 007a E6EE867A 		vfma.f32	s15, s13, s12
+ 849              	.LVL52:
+  78:SuperSawOsc.cpp ****     }
+ 850              		.loc 1 78 129 discriminator 2 view .LVU247
+ 851              	.LBE177:
+ 852              	.LBE185:
+  69:SuperSawOsc.cpp **** 			);
+ 853              		.loc 1 69 27 discriminator 2 view .LVU248
+ 854 007e 67EE277A 		vmul.f32	s15, s14, s15
+  67:SuperSawOsc.cpp **** 				freq_ + 
+ 855              		.loc 1 67 27 discriminator 2 view .LVU249
+ 856 0082 A0EE270A 		vfma.f32	s0, s0, s15
+ 857              	.LVL53:
+ 858              	.LBB186:
+ 859              	.LBI180:
+  58:../../DaisySP//Source/Synthesis/oscillator.h ****     {
+ 860              		.loc 2 58 17 is_stmt 1 discriminator 2 view .LVU250
+ 861              	.LBB182:
+  60:../../DaisySP//Source/Synthesis/oscillator.h ****         phase_inc_ = CalcPhaseInc(f);
+ 862              		.loc 2 60 9 discriminator 2 view .LVU251
+  60:../../DaisySP//Source/Synthesis/oscillator.h ****         phase_inc_ = CalcPhaseInc(f);
+ 863              		.loc 2 60 20 is_stmt 0 discriminator 2 view .LVU252
+ 864 0086 04ED080A 		vstr.32	s0, [r4, #-32]
+  61:../../DaisySP//Source/Synthesis/oscillator.h ****     }
+ 865              		.loc 2 61 9 is_stmt 1 discriminator 2 view .LVU253
+  61:../../DaisySP//Source/Synthesis/oscillator.h ****     }
+ 866              		.loc 2 61 34 is_stmt 0 discriminator 2 view .LVU254
+ 867 008a FFF7FEFF 		bl	_ZN7daisysp10Oscillator12CalcPhaseIncEf
+ 868              	.LVL54:
+  61:../../DaisySP//Source/Synthesis/oscillator.h ****     }
+ 869              		.loc 2 61 34 discriminator 2 view .LVU255
+ 870              	.LBE182:
+ 871              	.LBE186:
+  66:SuperSawOsc.cpp **** 			superSaws_[ i ].SetFreq( 
+ 872              		.loc 1 66 27 discriminator 2 view .LVU256
+ 873 008e B742     		cmp	r7, r6
+ 874              	.LBB187:
+ 875              	.LBB183:
+  61:../../DaisySP//Source/Synthesis/oscillator.h ****     }
+ 876              		.loc 2 61 20 discriminator 2 view .LVU257
+ 877 0090 04ED040A 		vstr.32	s0, [r4, #-16]
+  61:../../DaisySP//Source/Synthesis/oscillator.h ****     }
+ 878              		.loc 2 61 20 discriminator 2 view .LVU258
+ 879              	.LBE183:
+ 880              	.LBE187:
+  66:SuperSawOsc.cpp **** 			superSaws_[ i ].SetFreq( 
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 26
+
+
+ 881              		.loc 1 66 9 is_stmt 1 discriminator 2 view .LVU259
+  66:SuperSawOsc.cpp **** 			superSaws_[ i ].SetFreq( 
+ 882              		.loc 1 66 27 discriminator 2 view .LVU260
+ 883 0094 CDD1     		bne	.L35
+ 884              	.LBE171:
+  72:SuperSawOsc.cpp ****     float SuperSawOsc::lookupDetune( float knobAmount ){
+ 885              		.loc 1 72 5 is_stmt 0 view .LVU261
+ 886 0096 BDEC028B 		vldm	sp!, {d8}
+ 887              		.cfi_restore 80
+ 888              		.cfi_restore 81
+ 889              		.cfi_def_cfa_offset 24
+ 890              	.LVL55:
+  72:SuperSawOsc.cpp ****     float SuperSawOsc::lookupDetune( float knobAmount ){
+ 891              		.loc 1 72 5 view .LVU262
+ 892 009a F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+  72:SuperSawOsc.cpp ****     float SuperSawOsc::lookupDetune( float knobAmount ){
+ 893              		.loc 1 72 5 view .LVU263
+ 894              		.cfi_endproc
+ 895              	.LFE4790:
+ 897              		.section	.text._ZN7daisysp11SuperSawOsc12lookupDetuneEf,"ax",%progbits
+ 898              		.align	1
+ 899              		.p2align 2,,3
+ 900              		.global	_ZN7daisysp11SuperSawOsc12lookupDetuneEf
+ 901              		.syntax unified
+ 902              		.thumb
+ 903              		.thumb_func
+ 904              		.fpu fpv5-d16
+ 906              	_ZN7daisysp11SuperSawOsc12lookupDetuneEf:
+ 907              	.LVL56:
+ 908              	.LFB4791:
+  73:SuperSawOsc.cpp ****         float minDetune = detuneLookupTable_[ detuneKnobCurveIndex_ ];
+ 909              		.loc 1 73 56 is_stmt 1 view -0
+ 910              		.cfi_startproc
+ 911              		@ args = 0, pretend = 0, frame = 0
+ 912              		@ frame_needed = 0, uses_anonymous_args = 0
+ 913              		@ link register save eliminated.
+  74:SuperSawOsc.cpp ****         float maxDetune = detuneLookupTable_[ detuneKnobCurveIndex_ + 1 ];
+ 914              		.loc 1 74 9 view .LVU265
+  76:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 915              		.loc 1 76 31 is_stmt 0 view .LVU266
+ 916 0000 D0ED877A 		vldr.32	s15, [r0, #540]	@ int
+  77:SuperSawOsc.cpp ****         return minDetune + ( ( maxDetune - minDetune ) * ( ( knobAmount - minCurveValue ) / ( maxCu
+ 917              		.loc 1 77 64 view .LVU267
+ 918 0004 B7EE007A 		vmov.f32	s14, #1.0e+0
+  76:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 919              		.loc 1 76 15 view .LVU268
+ 920 0008 F3EE015A 		vmov.f32	s11, #1.7e+1
+  76:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 921              		.loc 1 76 31 view .LVU269
+ 922 000c B8EEE75A 		vcvt.f32.s32	s10, s15
+ 923 0010 17EE903A 		vmov	r3, s15	@ int
+ 924 0014 00EB8300 		add	r0, r0, r3, lsl #2
+ 925              	.LVL57:
+  77:SuperSawOsc.cpp ****         return minDetune + ( ( maxDetune - minDetune ) * ( ( knobAmount - minCurveValue ) / ( maxCu
+ 926              		.loc 1 77 64 view .LVU270
+ 927 0018 35EE077A 		vadd.f32	s14, s10, s14
+  76:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 27
+
+
+ 928              		.loc 1 76 15 view .LVU271
+ 929 001c 85EE256A 		vdiv.f32	s12, s10, s11
+  74:SuperSawOsc.cpp ****         float maxDetune = detuneLookupTable_[ detuneKnobCurveIndex_ + 1 ];
+ 930              		.loc 1 74 15 view .LVU272
+ 931 0020 D0ED196A 		vldr.32	s13, [r0, #100]
+ 932              	.LVL58:
+  75:SuperSawOsc.cpp ****         float minCurveValue = ( float )detuneKnobCurveIndex_ / CURVE_POINTS;
+ 933              		.loc 1 75 9 is_stmt 1 view .LVU273
+  76:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 934              		.loc 1 76 9 view .LVU274
+  77:SuperSawOsc.cpp ****         return minDetune + ( ( maxDetune - minDetune ) * ( ( knobAmount - minCurveValue ) / ( maxCu
+ 935              		.loc 1 77 9 view .LVU275
+  78:SuperSawOsc.cpp ****     }
+ 936              		.loc 1 78 9 view .LVU276
+  78:SuperSawOsc.cpp ****     }
+ 937              		.loc 1 78 42 is_stmt 0 view .LVU277
+ 938 0024 D0ED1A7A 		vldr.32	s15, [r0, #104]
+  77:SuperSawOsc.cpp ****         return minDetune + ( ( maxDetune - minDetune ) * ( ( knobAmount - minCurveValue ) / ( maxCu
+ 939              		.loc 1 77 15 view .LVU278
+ 940 0028 87EE255A 		vdiv.f32	s10, s14, s11
+ 941              	.LVL59:
+  78:SuperSawOsc.cpp ****     }
+ 942              		.loc 1 78 42 view .LVU279
+ 943 002c 77EEE67A 		vsub.f32	s15, s15, s13
+  78:SuperSawOsc.cpp ****     }
+ 944              		.loc 1 78 73 view .LVU280
+ 945 0030 30EE467A 		vsub.f32	s14, s0, s12
+  78:SuperSawOsc.cpp ****     }
+ 946              		.loc 1 78 109 view .LVU281
+ 947 0034 C5EE065A 		vdiv.f32	s11, s10, s12
+  78:SuperSawOsc.cpp ****     }
+ 948              		.loc 1 78 91 view .LVU282
+ 949 0038 87EE256A 		vdiv.f32	s12, s14, s11
+ 950              	.LVL60:
+  79:SuperSawOsc.cpp ****     float SuperSawOsc::lookupAmp( float knobAmount ){
+ 951              		.loc 1 79 5 view .LVU283
+ 952 003c E7EE866A 		vfma.f32	s13, s15, s12
+ 953              	.LVL61:
+  79:SuperSawOsc.cpp ****     float SuperSawOsc::lookupAmp( float knobAmount ){
+ 954              		.loc 1 79 5 view .LVU284
+ 955 0040 B0EE660A 		vmov.f32	s0, s13
+ 956              	.LVL62:
+  79:SuperSawOsc.cpp ****     float SuperSawOsc::lookupAmp( float knobAmount ){
+ 957              		.loc 1 79 5 view .LVU285
+ 958 0044 7047     		bx	lr
+ 959              		.cfi_endproc
+ 960              	.LFE4791:
+ 962 0046 00BF     		.section	.text._ZN7daisysp11SuperSawOsc9lookupAmpEf,"ax",%progbits
+ 963              		.align	1
+ 964              		.p2align 2,,3
+ 965              		.global	_ZN7daisysp11SuperSawOsc9lookupAmpEf
+ 966              		.syntax unified
+ 967              		.thumb
+ 968              		.thumb_func
+ 969              		.fpu fpv5-d16
+ 971              	_ZN7daisysp11SuperSawOsc9lookupAmpEf:
+ 972              	.LVL63:
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 28
+
+
+ 973              	.LFB4792:
+  80:SuperSawOsc.cpp ****         float minAmp = ampLookupTable_[ intensityKnobCurveIndex_  ];
+ 974              		.loc 1 80 53 is_stmt 1 view -0
+ 975              		.cfi_startproc
+ 976              		@ args = 0, pretend = 0, frame = 0
+ 977              		@ frame_needed = 0, uses_anonymous_args = 0
+ 978              		@ link register save eliminated.
+  81:SuperSawOsc.cpp ****         float maxAmp = ampLookupTable_[ intensityKnobCurveIndex_ + 1];
+ 979              		.loc 1 81 9 view .LVU287
+  83:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )intensityKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 980              		.loc 1 83 31 is_stmt 0 view .LVU288
+ 981 0000 D0ED887A 		vldr.32	s15, [r0, #544]	@ int
+  84:SuperSawOsc.cpp ****         return minAmp + ( ( maxAmp - minAmp ) * ( ( knobAmount - minCurveValue ) / ( maxCurveValue 
+ 982              		.loc 1 84 67 view .LVU289
+ 983 0004 B7EE007A 		vmov.f32	s14, #1.0e+0
+  83:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )intensityKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 984              		.loc 1 83 15 view .LVU290
+ 985 0008 F3EE015A 		vmov.f32	s11, #1.7e+1
+  83:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )intensityKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 986              		.loc 1 83 31 view .LVU291
+ 987 000c B8EEE75A 		vcvt.f32.s32	s10, s15
+ 988 0010 17EE903A 		vmov	r3, s15	@ int
+ 989 0014 00EB8300 		add	r0, r0, r3, lsl #2
+ 990              	.LVL64:
+  84:SuperSawOsc.cpp ****         return minAmp + ( ( maxAmp - minAmp ) * ( ( knobAmount - minCurveValue ) / ( maxCurveValue 
+ 991              		.loc 1 84 67 view .LVU292
+ 992 0018 35EE077A 		vadd.f32	s14, s10, s14
+  83:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )intensityKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 993              		.loc 1 83 15 view .LVU293
+ 994 001c 85EE256A 		vdiv.f32	s12, s10, s11
+  81:SuperSawOsc.cpp ****         float maxAmp = ampLookupTable_[ intensityKnobCurveIndex_ + 1];
+ 995              		.loc 1 81 15 view .LVU294
+ 996 0020 D0ED2A6A 		vldr.32	s13, [r0, #168]
+ 997              	.LVL65:
+  82:SuperSawOsc.cpp ****         float minCurveValue = ( float )intensityKnobCurveIndex_ / CURVE_POINTS;
+ 998              		.loc 1 82 9 is_stmt 1 view .LVU295
+  83:SuperSawOsc.cpp ****         float maxCurveValue = ( ( float )intensityKnobCurveIndex_ + 1 ) / CURVE_POINTS;
+ 999              		.loc 1 83 9 view .LVU296
+  84:SuperSawOsc.cpp ****         return minAmp + ( ( maxAmp - minAmp ) * ( ( knobAmount - minCurveValue ) / ( maxCurveValue 
+ 1000              		.loc 1 84 9 view .LVU297
+ 1001              		.loc 1 85 9 view .LVU298
+ 1002              		.loc 1 85 36 is_stmt 0 view .LVU299
+ 1003 0024 D0ED2B7A 		vldr.32	s15, [r0, #172]
+  84:SuperSawOsc.cpp ****         return minAmp + ( ( maxAmp - minAmp ) * ( ( knobAmount - minCurveValue ) / ( maxCurveValue 
+ 1004              		.loc 1 84 15 view .LVU300
+ 1005 0028 87EE255A 		vdiv.f32	s10, s14, s11
+ 1006              	.LVL66:
+ 1007              		.loc 1 85 36 view .LVU301
+ 1008 002c 77EEE67A 		vsub.f32	s15, s15, s13
+ 1009              		.loc 1 85 64 view .LVU302
+ 1010 0030 30EE467A 		vsub.f32	s14, s0, s12
+ 1011              		.loc 1 85 100 view .LVU303
+ 1012 0034 C5EE065A 		vdiv.f32	s11, s10, s12
+ 1013              		.loc 1 85 82 view .LVU304
+ 1014 0038 87EE256A 		vdiv.f32	s12, s14, s11
+ 1015              	.LVL67:
+  86:SuperSawOsc.cpp ****     }
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 29
+
+
+ 1016              		.loc 1 86 5 view .LVU305
+ 1017 003c E7EE866A 		vfma.f32	s13, s15, s12
+ 1018              	.LVL68:
+ 1019              		.loc 1 86 5 view .LVU306
+ 1020 0040 B0EE660A 		vmov.f32	s0, s13
+ 1021              	.LVL69:
+ 1022              		.loc 1 86 5 view .LVU307
+ 1023 0044 7047     		bx	lr
+ 1024              		.cfi_endproc
+ 1025              	.LFE4792:
+ 1027 0046 00BF     		.text
+ 1028              	.Letext0:
+ 1029              		.file 5 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\machi
+ 1030              		.file 6 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\sys\\
+ 1031              		.file 7 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\stdin
+ 1032              		.file 8 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\lib\\gcc\\arm-none-eabi\\10.2
+ 1033              		.file 9 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\\
+ 1034              		.file 10 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1035              		.file 11 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1036              		.file 12 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1037              		.file 13 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1038              		.file 14 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1039              		.file 15 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1040              		.file 16 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1041              		.file 17 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1042              		.file 18 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1043              		.file 19 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1044              		.file 20 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1045              		.file 21 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1046              		.file 22 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1047              		.file 23 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1048              		.file 24 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1049              		.file 25 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1050              		.file 26 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1051              		.file 27 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\sys\
+ 1052              		.file 28 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\sys\
+ 1053              		.file 29 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\sys\
+ 1054              		.file 30 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\math
+ 1055              		.file 31 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\stdl
+ 1056              		.file 32 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1057              		.file 33 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 1058              		.file 34 "../../libDaisy//src/daisy_core.h"
+ 1059              		.file 35 "../../libDaisy//src/util/wav_format.h"
+ 1060              		.file 36 "../../libDaisy//src/dev/max11300.h"
+ 1061              		.file 37 "../../libDaisy//src/daisy_seed.h"
+ 1062              		.file 38 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\lib\\gcc\\arm-none-eabi\\10.
+ 1063              		.file 39 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\stdi
+ 1064              		.file 40 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\stri
+ 1065              		.file 41 "../../DaisySP//Source/Control/adenv.h"
+ 1066              		.file 42 "SuperSawOsc.h"
+ 1067              		.file 43 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\wcha
+ 1068              		.file 44 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\loca
+ 1069              		.file 45 "../../libDaisy//src/dev/sr_595.h"
+ 1070              		.file 46 "<built-in>"
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s 			page 30
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 SuperSawOsc.cpp
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:17     .text._ZN7daisysp11SuperSawOsc4InitEf:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:26     .text._ZN7daisysp11SuperSawOsc4InitEf:00000000 _ZN7daisysp11SuperSawOsc4InitEf
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:232    .text._ZN7daisysp11SuperSawOsc4InitEf:000000ac $d
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:242    .text._ZN7daisysp11SuperSawOsc7ProcessEv:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:250    .text._ZN7daisysp11SuperSawOsc7ProcessEv:00000000 _ZN7daisysp11SuperSawOsc7ProcessEv
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:313    .text._ZN7daisysp11SuperSawOsc7SetFreqEf:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:321    .text._ZN7daisysp11SuperSawOsc7SetFreqEf:00000000 _ZN7daisysp11SuperSawOsc7SetFreqEf
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:338    .text._ZN7daisysp11SuperSawOsc5ResetEv:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:346    .text._ZN7daisysp11SuperSawOsc5ResetEv:00000000 _ZN7daisysp11SuperSawOsc5ResetEv
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:457    .text._ZN7daisysp11SuperSawOsc5ResetEv:00000060 $d
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:463    .text._ZN7daisysp11SuperSawOsc8SetDriftEf:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:471    .text._ZN7daisysp11SuperSawOsc8SetDriftEf:00000000 _ZN7daisysp11SuperSawOsc8SetDriftEf
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:713    .text._ZN7daisysp11SuperSawOsc8SetDriftEf:000000a0 $d
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:718    .text._ZN7daisysp11SuperSawOsc8SetShiftEf:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:726    .text._ZN7daisysp11SuperSawOsc8SetShiftEf:00000000 _ZN7daisysp11SuperSawOsc8SetShiftEf
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:898    .text._ZN7daisysp11SuperSawOsc12lookupDetuneEf:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:906    .text._ZN7daisysp11SuperSawOsc12lookupDetuneEf:00000000 _ZN7daisysp11SuperSawOsc12lookupDetuneEf
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:963    .text._ZN7daisysp11SuperSawOsc9lookupAmpEf:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccmOFr2K.s:971    .text._ZN7daisysp11SuperSawOsc9lookupAmpEf:00000000 _ZN7daisysp11SuperSawOsc9lookupAmpEf
+
+UNDEFINED SYMBOLS
+_ZN7daisysp10Oscillator12CalcPhaseIncEf
+rand
+_ZN7daisysp5ATone4InitEf
+_ZN7daisysp5ATone21CalculateCoefficientsEv
+_ZN7daisysp10Oscillator7ProcessEv
+_ZN7daisysp5ATone7ProcessERf

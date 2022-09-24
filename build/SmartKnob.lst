@@ -1,0 +1,630 @@
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 1
+
+
+   1              		.cpu cortex-m7
+   2              		.eabi_attribute 28, 1
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 2
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"SmartKnob.cpp"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text._ZN7daisysp9SmartKnob4InitEbf,"ax",%progbits
+  17              		.align	1
+  18              		.p2align 2,,3
+  19              		.global	_ZN7daisysp9SmartKnob4InitEbf
+  20              		.arch armv7e-m
+  21              		.syntax unified
+  22              		.thumb
+  23              		.thumb_func
+  24              		.fpu fpv5-d16
+  26              	_ZN7daisysp9SmartKnob4InitEbf:
+  27              	.LVL0:
+  28              	.LFB2533:
+  29              		.file 1 "SmartKnob.cpp"
+   1:SmartKnob.cpp **** #include "daisy_seed.h"
+   2:SmartKnob.cpp **** #include "SmartKnob.h"
+   3:SmartKnob.cpp **** namespace daisysp {
+   4:SmartKnob.cpp ****     void SmartKnob::Init( bool isActive, float initalValue ){
+  30              		.loc 1 4 61 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+   5:SmartKnob.cpp ****         isActive_ = isActive;
+  35              		.loc 1 5 9 view .LVU1
+  36              		.loc 1 5 19 is_stmt 0 view .LVU2
+  37 0000 4170     		strb	r1, [r0, #1]
+   6:SmartKnob.cpp ****         lastActiveValue_ = 
+  38              		.loc 1 6 9 is_stmt 1 view .LVU3
+   7:SmartKnob.cpp ****             valueAtActivation_ = 
+   8:SmartKnob.cpp ****             outputValue_ = 
+   9:SmartKnob.cpp ****             valueAtLastUpdate_ = 
+  39              		.loc 1 9 32 is_stmt 0 view .LVU4
+  40 0002 80ED040A 		vstr.32	s0, [r0, #16]
+   8:SmartKnob.cpp ****             valueAtLastUpdate_ = 
+  41              		.loc 1 8 26 view .LVU5
+  42 0006 80ED030A 		vstr.32	s0, [r0, #12]
+   7:SmartKnob.cpp ****             valueAtActivation_ = 
+  43              		.loc 1 7 32 view .LVU6
+  44 000a 80ED020A 		vstr.32	s0, [r0, #8]
+   6:SmartKnob.cpp ****         lastActiveValue_ = 
+  45              		.loc 1 6 26 view .LVU7
+  46 000e 80ED010A 		vstr.32	s0, [r0, #4]
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 2
+
+
+  10:SmartKnob.cpp ****             initalValue;
+  11:SmartKnob.cpp ****     }
+  47              		.loc 1 11 5 view .LVU8
+  48 0012 7047     		bx	lr
+  49              		.cfi_endproc
+  50              	.LFE2533:
+  52              		.section	.text._ZN7daisysp9SmartKnob6UpdateEf,"ax",%progbits
+  53              		.align	1
+  54              		.p2align 2,,3
+  55              		.global	_ZN7daisysp9SmartKnob6UpdateEf
+  56              		.syntax unified
+  57              		.thumb
+  58              		.thumb_func
+  59              		.fpu fpv5-d16
+  61              	_ZN7daisysp9SmartKnob6UpdateEf:
+  62              	.LVL1:
+  63              	.LFB2534:
+  12:SmartKnob.cpp ****     void SmartKnob::Update( float currentActualKnobValue ){
+  64              		.loc 1 12 59 is_stmt 1 view -0
+  65              		.cfi_startproc
+  66              		@ args = 0, pretend = 0, frame = 0
+  67              		@ frame_needed = 0, uses_anonymous_args = 0
+  68              		@ link register save eliminated.
+  13:SmartKnob.cpp ****         currentActualKnobValue_ = currentActualKnobValue;
+  69              		.loc 1 13 9 view .LVU10
+  70              	.LBB16:
+  14:SmartKnob.cpp ****         if( isActive_ ){
+  71              		.loc 1 14 9 is_stmt 0 view .LVU11
+  72 0000 4378     		ldrb	r3, [r0, #1]	@ zero_extendqisi2
+  73              	.LBE16:
+  13:SmartKnob.cpp ****         currentActualKnobValue_ = currentActualKnobValue;
+  74              		.loc 1 13 33 view .LVU12
+  75 0002 80ED050A 		vstr.32	s0, [r0, #20]
+  76              		.loc 1 14 9 is_stmt 1 view .LVU13
+  77              	.LBB36:
+  78 0006 93B1     		cbz	r3, .L4
+  79              	.LBE36:
+  15:SmartKnob.cpp ****             if( isWaitingToInterpolate_ ){
+  80              		.loc 1 15 13 view .LVU14
+  81              	.LBB37:
+  82              	.LBB17:
+  83 0008 8378     		ldrb	r3, [r0, #2]	@ zero_extendqisi2
+  84 000a 9BB1     		cbz	r3, .L5
+  16:SmartKnob.cpp ****                 // IF THE KNOB IS NOT WHERE IT WAS WHEN IT WAS ACTIVATED...
+  17:SmartKnob.cpp ****                 if( !fcompare( valueAtActivation_, currentActualKnobValue_ ) ){
+  85              		.loc 1 17 17 view .LVU15
+  86              	.LVL2:
+  87              	.LBB18:
+  88              	.LBI18:
+  18:SmartKnob.cpp ****                     isWaitingToInterpolate_ = false;
+  19:SmartKnob.cpp ****                     isInterpolating_ = true;
+  20:SmartKnob.cpp ****                 }
+  21:SmartKnob.cpp ****                 outputValue_ = lastActiveValue_;
+  22:SmartKnob.cpp ****             } else if( isInterpolating_ ){
+  23:SmartKnob.cpp ****                 float interpolationValue;
+  24:SmartKnob.cpp ****                 // MOVE TOWARDS THE CURRENT KNOB VALUE
+  25:SmartKnob.cpp ****                 interpolationValue = valueAtLastUpdate_ < currentActualKnobValue_?
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 3
+
+
+  26:SmartKnob.cpp ****                      valueAtLastUpdate_ + 0.002 :
+  27:SmartKnob.cpp ****                      valueAtLastUpdate_ - 0.002;
+  28:SmartKnob.cpp ****                 if( fcompare( interpolationValue, currentActualKnobValue_, 0.002 ) ){
+  29:SmartKnob.cpp ****                     isInterpolating_ = false;
+  30:SmartKnob.cpp ****                     outputValue_ = lastActiveValue_ = valueAtLastUpdate_ = currentActualKnobValue_;
+  31:SmartKnob.cpp ****                 } else outputValue_ = valueAtLastUpdate_ = interpolationValue;
+  32:SmartKnob.cpp ****             } else outputValue_ = lastActiveValue_ = currentActualKnobValue_;
+  33:SmartKnob.cpp ****         } else outputValue_ = lastActiveValue_;
+  34:SmartKnob.cpp ****     }
+  35:SmartKnob.cpp ****     void SmartKnob::Activate(){
+  36:SmartKnob.cpp ****         isActive_ = isWaitingToInterpolate_ = true;
+  37:SmartKnob.cpp ****         valueAtActivation_ = currentActualKnobValue_;
+  38:SmartKnob.cpp ****     }
+  39:SmartKnob.cpp ****     void SmartKnob::Deactivate(){ isActive_ = false; }
+  40:SmartKnob.cpp ****     float SmartKnob::GetValue(){ return outputValue_; }
+  41:SmartKnob.cpp ****     bool SmartKnob::fcompare( float a, float b, float epsilon ){ return abs( a - b ) <= epsilon; }
+  89              		.loc 1 41 10 view .LVU16
+  90              	.LBB19:
+  91              		.loc 1 41 66 view .LVU17
+  92              	.LBB20:
+  93              	.LBI20:
+  94              		.file 2 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\\
+   1:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // -*- C++ -*- C library enhancements header.
+   2:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+   3:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // Copyright (C) 2016-2020 Free Software Foundation, Inc.
+   4:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** //
+   5:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // This file is part of the GNU ISO C++ Library.  This library is free
+   6:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // software; you can redistribute it and/or modify it under the
+   7:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // terms of the GNU General Public License as published by the
+   8:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // Free Software Foundation; either version 3, or (at your option)
+   9:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // any later version.
+  10:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  11:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // This library is distributed in the hope that it will be useful,
+  12:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // but WITHOUT ANY WARRANTY; without even the implied warranty of
+  13:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  14:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // GNU General Public License for more details.
+  15:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  16:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // Under Section 7 of GPL version 3, you are granted additional
+  17:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // permissions described in the GCC Runtime Library Exception, version
+  18:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // 3.1, as published by the Free Software Foundation.
+  19:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  20:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // You should have received a copy of the GNU General Public License and
+  21:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // a copy of the GCC Runtime Library Exception along with this program;
+  22:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // see the files COPYING3 and COPYING.RUNTIME respectively.  If not, see
+  23:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // <http://www.gnu.org/licenses/>.
+  24:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  25:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** /** @file include/bits/std_abs.h
+  26:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****  *  This is an internal header file, included by other library headers.
+  27:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****  *  Do not attempt to use it directly. @headername{cmath, cstdlib}
+  28:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****  */
+  29:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  30:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #ifndef _GLIBCXX_BITS_STD_ABS_H
+  31:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #define _GLIBCXX_BITS_STD_ABS_H
+  32:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  33:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #pragma GCC system_header
+  34:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  35:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #include <bits/c++config.h>
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 4
+
+
+  36:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  37:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #define _GLIBCXX_INCLUDE_NEXT_C_HEADERS
+  38:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #include_next <stdlib.h>
+  39:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #ifdef __CORRECT_ISO_CPP_MATH_H_PROTO
+  40:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** # include_next <math.h>
+  41:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #endif
+  42:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #undef _GLIBCXX_INCLUDE_NEXT_C_HEADERS
+  43:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  44:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #undef abs
+  45:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  46:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** extern "C++"
+  47:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** {
+  48:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** namespace std _GLIBCXX_VISIBILITY(default)
+  49:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** {
+  50:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** _GLIBCXX_BEGIN_NAMESPACE_VERSION
+  51:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  52:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   using ::abs;
+  53:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  54:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #ifndef __CORRECT_ISO_CPP_STDLIB_H_PROTO
+  55:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   inline long
+  56:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   abs(long __i) { return __builtin_labs(__i); }
+  57:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #endif
+  58:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  59:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #ifdef _GLIBCXX_USE_LONG_LONG
+  60:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   inline long long
+  61:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   abs(long long __x) { return __builtin_llabs (__x); }
+  62:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #endif
+  63:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  64:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // _GLIBCXX_RESOLVE_LIB_DEFECTS
+  65:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // 2192. Validity and return type of std::abs(0u) is unclear
+  66:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // 2294. <cstdlib> should declare abs(double)
+  67:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** // 2735. std::abs(short), std::abs(signed char) and others should return int
+  68:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  69:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** #ifndef __CORRECT_ISO_CPP_MATH_H_PROTO
+  70:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   inline _GLIBCXX_CONSTEXPR double
+  71:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   abs(double __x)
+  72:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   { return __builtin_fabs(__x); }
+  73:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h **** 
+  74:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   inline _GLIBCXX_CONSTEXPR float
+  75:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   abs(float __x)
+  95              		.loc 2 75 3 view .LVU18
+  96              	.LBB21:
+  76:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   { return __builtin_fabsf(__x); }
+  97              		.loc 2 76 5 view .LVU19
+  98              		.loc 2 76 5 is_stmt 0 view .LVU20
+  99              	.LBE21:
+ 100              	.LBE20:
+ 101              		.loc 1 41 76 view .LVU21
+ 102 000c D0ED027A 		vldr.32	s15, [r0, #8]
+ 103              	.LBE19:
+ 104              	.LBE18:
+  17:SmartKnob.cpp ****                     isWaitingToInterpolate_ = false;
+ 105              		.loc 1 17 17 view .LVU22
+ 106 0010 9FED237A 		vldr.32	s14, .L18+8
+ 107              	.LBB25:
+ 108              	.LBB24:
+ 109              		.loc 1 41 76 view .LVU23
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 5
+
+
+ 110 0014 37EEC00A 		vsub.f32	s0, s15, s0
+ 111              	.LVL3:
+ 112              	.LBB23:
+ 113              	.LBB22:
+ 114              		.loc 2 76 31 view .LVU24
+ 115 0018 B0EEC00A 		vabs.f32	s0, s0
+ 116              	.LBE22:
+ 117              	.LBE23:
+ 118              	.LBE24:
+ 119              	.LBE25:
+  17:SmartKnob.cpp ****                     isWaitingToInterpolate_ = false;
+ 120              		.loc 1 17 17 view .LVU25
+ 121 001c B4EEC70A 		vcmpe.f32	s0, s14
+ 122 0020 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 123 0024 03D9     		bls	.L4
+  18:SmartKnob.cpp ****                     isInterpolating_ = true;
+ 124              		.loc 1 18 21 is_stmt 1 view .LVU26
+  18:SmartKnob.cpp ****                     isInterpolating_ = true;
+ 125              		.loc 1 18 45 is_stmt 0 view .LVU27
+ 126 0026 0022     		movs	r2, #0
+  19:SmartKnob.cpp ****                 }
+ 127              		.loc 1 19 38 view .LVU28
+ 128 0028 0123     		movs	r3, #1
+  18:SmartKnob.cpp ****                     isInterpolating_ = true;
+ 129              		.loc 1 18 45 view .LVU29
+ 130 002a 8270     		strb	r2, [r0, #2]
+  19:SmartKnob.cpp ****                 }
+ 131              		.loc 1 19 21 is_stmt 1 view .LVU30
+  19:SmartKnob.cpp ****                 }
+ 132              		.loc 1 19 38 is_stmt 0 view .LVU31
+ 133 002c 0370     		strb	r3, [r0]
+  21:SmartKnob.cpp ****             } else if( isInterpolating_ ){
+ 134              		.loc 1 21 17 is_stmt 1 view .LVU32
+ 135              	.L4:
+ 136              	.LBE17:
+  33:SmartKnob.cpp ****     }
+ 137              		.loc 1 33 16 view .LVU33
+  33:SmartKnob.cpp ****     }
+ 138              		.loc 1 33 29 is_stmt 0 view .LVU34
+ 139 002e 4368     		ldr	r3, [r0, #4]	@ float
+ 140 0030 C360     		str	r3, [r0, #12]	@ float
+ 141              	.LBE37:
+  34:SmartKnob.cpp ****     void SmartKnob::Activate(){
+ 142              		.loc 1 34 5 view .LVU35
+ 143 0032 7047     		bx	lr
+ 144              	.LVL4:
+ 145              	.L5:
+  22:SmartKnob.cpp ****                 float interpolationValue;
+ 146              		.loc 1 22 20 is_stmt 1 view .LVU36
+ 147              	.LBB38:
+ 148              	.LBB35:
+ 149              	.LBB26:
+ 150 0034 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+ 151 0036 23B3     		cbz	r3, .L8
+ 152              	.LBB27:
+  23:SmartKnob.cpp ****                 // MOVE TOWARDS THE CURRENT KNOB VALUE
+ 153              		.loc 1 23 17 view .LVU37
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 6
+
+
+  25:SmartKnob.cpp ****                      valueAtLastUpdate_ + 0.002 :
+ 154              		.loc 1 25 17 view .LVU38
+  25:SmartKnob.cpp ****                      valueAtLastUpdate_ + 0.002 :
+ 155              		.loc 1 25 38 is_stmt 0 view .LVU39
+ 156 0038 90ED047A 		vldr.32	s14, [r0, #16]
+  25:SmartKnob.cpp ****                      valueAtLastUpdate_ + 0.002 :
+ 157              		.loc 1 25 82 view .LVU40
+ 158 003c B4EEC07A 		vcmpe.f32	s14, s0
+  26:SmartKnob.cpp ****                      valueAtLastUpdate_ - 0.002;
+ 159              		.loc 1 26 22 view .LVU41
+ 160 0040 B7EEC77A 		vcvt.f64.f32	d7, s14
+  25:SmartKnob.cpp ****                      valueAtLastUpdate_ + 0.002 :
+ 161              		.loc 1 25 82 view .LVU42
+ 162 0044 F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 163 0048 9FED136B 		vldr.64	d6, .L18
+ 164 004c 4CBF     		ite	mi
+ 165 004e 37EE067B 		vaddmi.f64	d7, d7, d6
+ 166 0052 37EE467B 		vsubpl.f64	d7, d7, d6
+  28:SmartKnob.cpp ****                     isInterpolating_ = false;
+ 167              		.loc 1 28 17 view .LVU43
+ 168 0056 DFED136A 		vldr.32	s13, .L18+12
+  25:SmartKnob.cpp ****                      valueAtLastUpdate_ + 0.002 :
+ 169              		.loc 1 25 36 view .LVU44
+ 170 005a B7EEC77B 		vcvt.f32.f64	s14, d7
+ 171              	.LVL5:
+  28:SmartKnob.cpp ****                     isInterpolating_ = false;
+ 172              		.loc 1 28 17 is_stmt 1 view .LVU45
+ 173              	.LBB28:
+ 174              	.LBI28:
+ 175              		.loc 1 41 10 view .LVU46
+ 176              	.LBB29:
+ 177              		.loc 1 41 66 view .LVU47
+ 178              	.LBB30:
+ 179              	.LBI30:
+  75:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   { return __builtin_fabsf(__x); }
+ 180              		.loc 2 75 3 view .LVU48
+ 181              	.LBB31:
+ 182              		.loc 2 76 5 view .LVU49
+ 183              		.loc 2 76 5 is_stmt 0 view .LVU50
+ 184              	.LBE31:
+ 185              	.LBE30:
+ 186              		.loc 1 41 76 view .LVU51
+ 187 005e 77EE407A 		vsub.f32	s15, s14, s0
+ 188              	.LBB33:
+ 189              	.LBB32:
+ 190              		.loc 2 76 31 view .LVU52
+ 191 0062 F0EEE77A 		vabs.f32	s15, s15
+ 192              	.LBE32:
+ 193              	.LBE33:
+ 194              	.LBE29:
+ 195              	.LBE28:
+  28:SmartKnob.cpp ****                     isInterpolating_ = false;
+ 196              		.loc 1 28 17 view .LVU53
+ 197 0066 F4EEE67A 		vcmpe.f32	s15, s13
+ 198 006a F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 199 006e 0DD8     		bhi	.L17
+  29:SmartKnob.cpp ****                     outputValue_ = lastActiveValue_ = valueAtLastUpdate_ = currentActualKnobValue_;
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 7
+
+
+ 200              		.loc 1 29 21 is_stmt 1 view .LVU54
+  29:SmartKnob.cpp ****                     outputValue_ = lastActiveValue_ = valueAtLastUpdate_ = currentActualKnobValue_;
+ 201              		.loc 1 29 38 is_stmt 0 view .LVU55
+ 202 0070 0023     		movs	r3, #0
+  30:SmartKnob.cpp ****                 } else outputValue_ = valueAtLastUpdate_ = interpolationValue;
+ 203              		.loc 1 30 74 view .LVU56
+ 204 0072 80ED040A 		vstr.32	s0, [r0, #16]
+  30:SmartKnob.cpp ****                 } else outputValue_ = valueAtLastUpdate_ = interpolationValue;
+ 205              		.loc 1 30 53 view .LVU57
+ 206 0076 80ED010A 		vstr.32	s0, [r0, #4]
+  30:SmartKnob.cpp ****                 } else outputValue_ = valueAtLastUpdate_ = interpolationValue;
+ 207              		.loc 1 30 34 view .LVU58
+ 208 007a 80ED030A 		vstr.32	s0, [r0, #12]
+  29:SmartKnob.cpp ****                     outputValue_ = lastActiveValue_ = valueAtLastUpdate_ = currentActualKnobValue_;
+ 209              		.loc 1 29 38 view .LVU59
+ 210 007e 0370     		strb	r3, [r0]
+  30:SmartKnob.cpp ****                 } else outputValue_ = valueAtLastUpdate_ = interpolationValue;
+ 211              		.loc 1 30 21 is_stmt 1 view .LVU60
+ 212 0080 7047     		bx	lr
+ 213              	.LVL6:
+ 214              	.L8:
+  30:SmartKnob.cpp ****                 } else outputValue_ = valueAtLastUpdate_ = interpolationValue;
+ 215              		.loc 1 30 21 is_stmt 0 view .LVU61
+ 216              	.LBE27:
+  32:SmartKnob.cpp ****         } else outputValue_ = lastActiveValue_;
+ 217              		.loc 1 32 20 is_stmt 1 view .LVU62
+  32:SmartKnob.cpp ****         } else outputValue_ = lastActiveValue_;
+ 218              		.loc 1 32 52 is_stmt 0 view .LVU63
+ 219 0082 80ED010A 		vstr.32	s0, [r0, #4]
+  32:SmartKnob.cpp ****         } else outputValue_ = lastActiveValue_;
+ 220              		.loc 1 32 33 view .LVU64
+ 221 0086 80ED030A 		vstr.32	s0, [r0, #12]
+ 222 008a 7047     		bx	lr
+ 223              	.LVL7:
+ 224              	.L17:
+ 225              	.LBB34:
+  31:SmartKnob.cpp ****             } else outputValue_ = lastActiveValue_ = currentActualKnobValue_;
+ 226              		.loc 1 31 24 is_stmt 1 view .LVU65
+  31:SmartKnob.cpp ****             } else outputValue_ = lastActiveValue_ = currentActualKnobValue_;
+ 227              		.loc 1 31 58 is_stmt 0 view .LVU66
+ 228 008c 80ED047A 		vstr.32	s14, [r0, #16]
+  31:SmartKnob.cpp ****             } else outputValue_ = lastActiveValue_ = currentActualKnobValue_;
+ 229              		.loc 1 31 37 view .LVU67
+ 230 0090 80ED037A 		vstr.32	s14, [r0, #12]
+ 231 0094 7047     		bx	lr
+ 232              	.L19:
+ 233 0096 00BF     		.align	3
+ 234              	.L18:
+ 235 0098 FCA9F1D2 		.word	-755914244
+ 236 009c 4D62603F 		.word	1063281229
+ 237 00a0 0AD7233C 		.word	1008981770
+ 238 00a4 6F12033B 		.word	990057071
+ 239              	.LBE34:
+ 240              	.LBE26:
+ 241              	.LBE35:
+ 242              	.LBE38:
+ 243              		.cfi_endproc
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 8
+
+
+ 244              	.LFE2534:
+ 246              		.section	.text._ZN7daisysp9SmartKnob8ActivateEv,"ax",%progbits
+ 247              		.align	1
+ 248              		.p2align 2,,3
+ 249              		.global	_ZN7daisysp9SmartKnob8ActivateEv
+ 250              		.syntax unified
+ 251              		.thumb
+ 252              		.thumb_func
+ 253              		.fpu fpv5-d16
+ 255              	_ZN7daisysp9SmartKnob8ActivateEv:
+ 256              	.LVL8:
+ 257              	.LFB2535:
+  35:SmartKnob.cpp ****         isActive_ = isWaitingToInterpolate_ = true;
+ 258              		.loc 1 35 31 is_stmt 1 view -0
+ 259              		.cfi_startproc
+ 260              		@ args = 0, pretend = 0, frame = 0
+ 261              		@ frame_needed = 0, uses_anonymous_args = 0
+ 262              		@ link register save eliminated.
+  36:SmartKnob.cpp ****         valueAtActivation_ = currentActualKnobValue_;
+ 263              		.loc 1 36 9 view .LVU69
+  36:SmartKnob.cpp ****         valueAtActivation_ = currentActualKnobValue_;
+ 264              		.loc 1 36 45 is_stmt 0 view .LVU70
+ 265 0000 0123     		movs	r3, #1
+  37:SmartKnob.cpp ****     }
+ 266              		.loc 1 37 28 view .LVU71
+ 267 0002 4269     		ldr	r2, [r0, #20]	@ float
+  36:SmartKnob.cpp ****         valueAtActivation_ = currentActualKnobValue_;
+ 268              		.loc 1 36 45 view .LVU72
+ 269 0004 8370     		strb	r3, [r0, #2]
+  36:SmartKnob.cpp ****         valueAtActivation_ = currentActualKnobValue_;
+ 270              		.loc 1 36 19 view .LVU73
+ 271 0006 4370     		strb	r3, [r0, #1]
+  37:SmartKnob.cpp ****     }
+ 272              		.loc 1 37 9 is_stmt 1 view .LVU74
+  37:SmartKnob.cpp ****     }
+ 273              		.loc 1 37 28 is_stmt 0 view .LVU75
+ 274 0008 8260     		str	r2, [r0, #8]	@ float
+  38:SmartKnob.cpp ****     void SmartKnob::Deactivate(){ isActive_ = false; }
+ 275              		.loc 1 38 5 view .LVU76
+ 276 000a 7047     		bx	lr
+ 277              		.cfi_endproc
+ 278              	.LFE2535:
+ 280              		.section	.text._ZN7daisysp9SmartKnob10DeactivateEv,"ax",%progbits
+ 281              		.align	1
+ 282              		.p2align 2,,3
+ 283              		.global	_ZN7daisysp9SmartKnob10DeactivateEv
+ 284              		.syntax unified
+ 285              		.thumb
+ 286              		.thumb_func
+ 287              		.fpu fpv5-d16
+ 289              	_ZN7daisysp9SmartKnob10DeactivateEv:
+ 290              	.LVL9:
+ 291              	.LFB2536:
+  39:SmartKnob.cpp ****     float SmartKnob::GetValue(){ return outputValue_; }
+ 292              		.loc 1 39 33 is_stmt 1 view -0
+ 293              		.cfi_startproc
+ 294              		@ args = 0, pretend = 0, frame = 0
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 9
+
+
+ 295              		@ frame_needed = 0, uses_anonymous_args = 0
+ 296              		@ link register save eliminated.
+  39:SmartKnob.cpp ****     float SmartKnob::GetValue(){ return outputValue_; }
+ 297              		.loc 1 39 35 view .LVU78
+  39:SmartKnob.cpp ****     float SmartKnob::GetValue(){ return outputValue_; }
+ 298              		.loc 1 39 45 is_stmt 0 view .LVU79
+ 299 0000 0023     		movs	r3, #0
+ 300 0002 4370     		strb	r3, [r0, #1]
+  39:SmartKnob.cpp ****     float SmartKnob::GetValue(){ return outputValue_; }
+ 301              		.loc 1 39 54 view .LVU80
+ 302 0004 7047     		bx	lr
+ 303              		.cfi_endproc
+ 304              	.LFE2536:
+ 306 0006 00BF     		.section	.text._ZN7daisysp9SmartKnob8GetValueEv,"ax",%progbits
+ 307              		.align	1
+ 308              		.p2align 2,,3
+ 309              		.global	_ZN7daisysp9SmartKnob8GetValueEv
+ 310              		.syntax unified
+ 311              		.thumb
+ 312              		.thumb_func
+ 313              		.fpu fpv5-d16
+ 315              	_ZN7daisysp9SmartKnob8GetValueEv:
+ 316              	.LVL10:
+ 317              	.LFB2537:
+  40:SmartKnob.cpp ****     bool SmartKnob::fcompare( float a, float b, float epsilon ){ return abs( a - b ) <= epsilon; }
+ 318              		.loc 1 40 32 is_stmt 1 view -0
+ 319              		.cfi_startproc
+ 320              		@ args = 0, pretend = 0, frame = 0
+ 321              		@ frame_needed = 0, uses_anonymous_args = 0
+ 322              		@ link register save eliminated.
+  40:SmartKnob.cpp ****     bool SmartKnob::fcompare( float a, float b, float epsilon ){ return abs( a - b ) <= epsilon; }
+ 323              		.loc 1 40 34 view .LVU82
+  40:SmartKnob.cpp ****     bool SmartKnob::fcompare( float a, float b, float epsilon ){ return abs( a - b ) <= epsilon; }
+ 324              		.loc 1 40 55 is_stmt 0 view .LVU83
+ 325 0000 90ED030A 		vldr.32	s0, [r0, #12]
+ 326 0004 7047     		bx	lr
+ 327              		.cfi_endproc
+ 328              	.LFE2537:
+ 330              		.section	.text._ZN7daisysp9SmartKnob8fcompareEfff,"ax",%progbits
+ 331              		.align	1
+ 332              		.p2align 2,,3
+ 333              		.global	_ZN7daisysp9SmartKnob8fcompareEfff
+ 334              		.syntax unified
+ 335              		.thumb
+ 336              		.thumb_func
+ 337              		.fpu fpv5-d16
+ 339              	_ZN7daisysp9SmartKnob8fcompareEfff:
+ 340              	.LVL11:
+ 341              	.LFB2538:
+ 342              		.loc 1 41 64 is_stmt 1 view -0
+ 343              		.cfi_startproc
+ 344              		@ args = 0, pretend = 0, frame = 0
+ 345              		@ frame_needed = 0, uses_anonymous_args = 0
+ 346              		@ link register save eliminated.
+ 347              		.loc 1 41 66 view .LVU85
+ 348              	.LBB39:
+ 349              	.LBI39:
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 10
+
+
+  75:c:\users\danst\documents\daisytoolchain-0.3.3\windows\arm-none-eabi\include\c++\10.2.1\bits\std_abs.h ****   { return __builtin_fabsf(__x); }
+ 350              		.loc 2 75 3 view .LVU86
+ 351              	.LBB40:
+ 352              		.loc 2 76 5 view .LVU87
+ 353              		.loc 2 76 5 is_stmt 0 view .LVU88
+ 354              	.LBE40:
+ 355              	.LBE39:
+ 356              		.loc 1 41 76 view .LVU89
+ 357 0000 70EE600A 		vsub.f32	s1, s0, s1
+ 358              	.LVL12:
+ 359              	.LBB42:
+ 360              	.LBB41:
+ 361              		.loc 2 76 31 view .LVU90
+ 362 0004 F0EEE00A 		vabs.f32	s1, s1
+ 363              	.LBE41:
+ 364              	.LBE42:
+ 365              		.loc 1 41 89 view .LVU91
+ 366 0008 F4EEC10A 		vcmpe.f32	s1, s2
+ 367 000c F1EE10FA 		vmrs	APSR_nzcv, FPSCR
+ 368              		.loc 1 41 98 view .LVU92
+ 369 0010 94BF     		ite	ls
+ 370 0012 0120     		movls	r0, #1
+ 371              	.LVL13:
+ 372              		.loc 1 41 98 view .LVU93
+ 373 0014 0020     		movhi	r0, #0
+ 374 0016 7047     		bx	lr
+ 375              		.cfi_endproc
+ 376              	.LFE2538:
+ 378              		.text
+ 379              	.Letext0:
+ 380              		.file 3 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\machi
+ 381              		.file 4 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\sys\\
+ 382              		.file 5 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\stdin
+ 383              		.file 6 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\lib\\gcc\\arm-none-eabi\\10.2
+ 384              		.file 7 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\\
+ 385              		.file 8 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\\
+ 386              		.file 9 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\\
+ 387              		.file 10 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 388              		.file 11 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 389              		.file 12 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 390              		.file 13 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 391              		.file 14 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 392              		.file 15 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 393              		.file 16 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 394              		.file 17 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 395              		.file 18 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 396              		.file 19 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 397              		.file 20 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\sys\
+ 398              		.file 21 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\sys\
+ 399              		.file 22 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\sys\
+ 400              		.file 23 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\math
+ 401              		.file 24 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\stdl
+ 402              		.file 25 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 403              		.file 26 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\c++\
+ 404              		.file 27 "../../libDaisy//src/daisy_core.h"
+ 405              		.file 28 "../../libDaisy//src/util/wav_format.h"
+ 406              		.file 29 "../../libDaisy//src/dev/max11300.h"
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 11
+
+
+ 407              		.file 30 "../../libDaisy//src/daisy_seed.h"
+ 408              		.file 31 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\lib\\gcc\\arm-none-eabi\\10.
+ 409              		.file 32 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\stdi
+ 410              		.file 33 "c:\\users\\danst\\documents\\daisytoolchain-0.3.3\\windows\\arm-none-eabi\\include\\stri
+ 411              		.file 34 "SmartKnob.h"
+ 412              		.file 35 "<built-in>"
+ 413              		.file 36 "../../libDaisy//src/dev/sr_595.h"
+ARM GAS  C:\Users\danst\AppData\Local\Temp\ccPK51b3.s 			page 12
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 SmartKnob.cpp
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:17     .text._ZN7daisysp9SmartKnob4InitEbf:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:26     .text._ZN7daisysp9SmartKnob4InitEbf:00000000 _ZN7daisysp9SmartKnob4InitEbf
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:53     .text._ZN7daisysp9SmartKnob6UpdateEf:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:61     .text._ZN7daisysp9SmartKnob6UpdateEf:00000000 _ZN7daisysp9SmartKnob6UpdateEf
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:235    .text._ZN7daisysp9SmartKnob6UpdateEf:00000098 $d
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:247    .text._ZN7daisysp9SmartKnob8ActivateEv:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:255    .text._ZN7daisysp9SmartKnob8ActivateEv:00000000 _ZN7daisysp9SmartKnob8ActivateEv
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:281    .text._ZN7daisysp9SmartKnob10DeactivateEv:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:289    .text._ZN7daisysp9SmartKnob10DeactivateEv:00000000 _ZN7daisysp9SmartKnob10DeactivateEv
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:307    .text._ZN7daisysp9SmartKnob8GetValueEv:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:315    .text._ZN7daisysp9SmartKnob8GetValueEv:00000000 _ZN7daisysp9SmartKnob8GetValueEv
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:331    .text._ZN7daisysp9SmartKnob8fcompareEfff:00000000 $t
+C:\Users\danst\AppData\Local\Temp\ccPK51b3.s:339    .text._ZN7daisysp9SmartKnob8fcompareEfff:00000000 _ZN7daisysp9SmartKnob8fcompareEfff
+
+NO UNDEFINED SYMBOLS

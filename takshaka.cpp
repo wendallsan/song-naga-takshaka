@@ -76,6 +76,13 @@ Overdrive distortion;
 Adsr pounce, ampEnv;
 void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){
 	for( size_t i = 0; i < size; i++ ){
+		float pounceValue = pounce.Process( envGate );
+		// MUX: float modDriftValue = driftValue + ( pounceValue * pounceDriftModValue );
+		float modDriftValue = driftValue;
+		superSaw.SetDrift( modDriftValue );
+		// MUX: float modShiftValue = shiftValue + ( pounceValue * pounceShiftModValue );
+		float modShiftValue = shiftValue;
+		superSaw.SetShift( modShiftValue );
 		// SET ADJUST TO 1.0 - 0.8 DEPENDING ON THE SUB KNOB
 		float superSawAdjust = fmap( 1.0 - subMixSmartKnob.GetValue(), 0.8, 1.0 );
 		float mixedSignal = superSaw.Process() * superSawAdjust;
@@ -83,8 +90,7 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		mixedSignal += subSignal * subMixSmartKnob.GetValue();
 		float lfoSignal = lfo.Process();		
 		mixedSignal = distortion.Process( mixedSignal );
-		// FOR NOW, JUST USE POUNCE TO MODULATE THE FILTER ENVELOPE
-		// FOR NOW MODULATION AMOUNT IS FIXED
+		// MUX: float cutoffMod = pounceValue * pounceHowlModValue;
 		float cutoffMod = pounce.Process( envGate ) * 0.5;
 		cutoffMod += filterCutoffSmartKnob.GetValue();
 		float filterFreq = fmap( cutoffMod, 1.0, fclamp( midiFreq * 16.0, 20.0, 20000.0 ) );
@@ -255,7 +261,6 @@ void handleSmartKnobSwitching(){
 }
 void updateSuperSaw(){
 	superSaw.SetFreq( midiFreq );
-	superSaw.SetDrift( driftValue );
 	superSaw.SetShift( shiftValue );
 }
 void updateSubOsc(){

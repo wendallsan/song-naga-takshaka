@@ -1,4 +1,4 @@
-build/supersaw.o: supersaw.cpp \
+build/takshaka.o: takshaka.cpp \
  ../../libDaisy//Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h7xx.h \
  ../../libDaisy//Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h750xx.h \
  ../../libDaisy//Drivers/CMSIS/Include/core_cm7.h \
@@ -213,7 +213,7 @@ build/supersaw.o: supersaw.cpp \
  ../../DaisySP//Source/Utility/metro.h \
  ../../DaisySP//Source/Utility/port.h \
  ../../DaisySP//Source/Utility/samplehold.h \
- ../../DaisySP//Source/Utility/smooth_random.h
+ ../../DaisySP//Source/Utility/smooth_random.h SuperSawOsc.h SmartKnob.h
 ../../libDaisy//Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h7xx.h:
 ../../libDaisy//Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h750xx.h:
 ../../libDaisy//Drivers/CMSIS/Include/core_cm7.h:
@@ -460,3 +460,5 @@ build/supersaw.o: supersaw.cpp \
 ../../DaisySP//Source/Utility/port.h:
 ../../DaisySP//Source/Utility/samplehold.h:
 ../../DaisySP//Source/Utility/smooth_random.h:
+SuperSawOsc.h:
+SmartKnob.h:
