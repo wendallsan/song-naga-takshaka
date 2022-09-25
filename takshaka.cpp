@@ -6,9 +6,9 @@
 #define SAMPLE_RATE 48000.0
 using namespace daisy;
 using namespace daisysp;
-enum AdcChannel { 
-	driftKnob, 
-	shiftKnob, 
+enum AdcChannel {
+	driftKnob,
+	shiftKnob,
 	growlKnob,
 	howlKnob,
 	resKnob,
@@ -19,7 +19,7 @@ enum AdcChannel {
 	clawsKnob,
 	slitherKnob,
 	slitherDriftModKnob,
-	ADC_CHANNELS_COUNT 
+	ADC_CHANNELS_COUNT
 };
 enum SubOscWaveforms {
 	SUBOSC_SINE_1,
@@ -30,10 +30,19 @@ enum SubOscWaveforms {
 	SUBOSC_SQUARE_2,
 	SUBOSC_WAVEFORMS_COUNT
 };
+enum lfoWaveforms {
+	SINE,
+	TRI,
+	SAW,
+	RAMP,
+	SQUARE,
+	RANDOM,
+	LFO_WAVEFORMS_COUNT
+};
 enum FilterModes {
-	FILTER_MODE_LP, 
-	FILTER_MODE_HP, 
-	FILTER_MODE_BP, 
+	FILTER_MODE_LP,
+	FILTER_MODE_HP,
+	FILTER_MODE_BP,
 	FILTER_MODE_COMB,
 	FILTER_MODES_COUNT
 };
@@ -59,15 +68,17 @@ SmartKnob subMixSmartKnob,
 	filterCutoffSmartKnob,
 	filterTypeSmartKnob,
 	filterResSmartKnob,
-	filterPolesSmartKnob,	
+	filterPolesSmartKnob,
 	pounceAttackSmartKnob,
 	ampEnvAttackSmartKnob,
 	pounceSustainSmartKnob,
 	ampEnvSustainSmartKnob,
 	pounceDecaySmartKnob,
 	ampEnvDecaySmartKnob,
-	ampSmartKnob, 
-	ampEnvModSmartKnob;
+	ampSmartKnob,
+	ampEnvModSmartKnob,
+	lfoFrequencySmartKnob,
+	lfoTypeSmartKnob;
 SuperSawOsc superSaw;
 Oscillator subOsc, lfo;
 Svf filter1, filter2;
@@ -77,17 +88,17 @@ Adsr pounce, ampEnv;
 void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){
 	for( size_t i = 0; i < size; i++ ){
 		float pounceValue = pounce.Process( envGate );
-		float slitherValue = lfo.Process();
+		// MUX: float slitherValue = lfo.Process();
 		// MUX: float modDriftValue = driftValue + ( pounceValue * pounceDriftModValue );
 		float modDriftValue = driftValue;
 		// DISABLED FOR PRE-MUX TESTING: THIS IS THE ACTUAL CORRECT SETTING, BUT WE'RE USING THIS
 		// KNOB VALUE FOR TESTING OTHER FEATURES CURRENTLY.
-		// modDriftValue += slitherValue * 
+		// modDriftValue += slitherValue *
 		// 	( ( slitherValue * slitherDriftModValue ) - ( slitherDriftModValue / 2.0 ) );
 		superSaw.SetDrift( fclamp( modDriftValue, 0.0, 1.0 ) );
 		// MUX: float modShiftValue = shiftValue + ( pounceValue * pounceShiftModValue );
 		float modShiftValue = shiftValue;
-		// MUX: modShiftValue += slitherValue * 
+		// MUX: modShiftValue += slitherValue *
 		//  	( ( slitherValue * slitherShiftModValue ) - ( slitherShiftModValue / 2.0 ) );
 		superSaw.SetShift( fclamp( modShiftValue, 0.0, 1.0 ) );
 		// SET ADJUST TO 1.0 - 0.8 DEPENDING ON THE SUB KNOB
@@ -97,7 +108,8 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		mixedSignal += subSignal * subMixSmartKnob.GetValue();
 		mixedSignal = distortion.Process( mixedSignal );
 		// MUX: float cutoffMod = pounceValue * pounceHowlModValue;
-		float cutoffMod = pounce.Process( envGate ) * 0.5;
+		// FOR NOW WE SET MOD TO A FIXED VALUE
+		float cutoffMod = pounceValue * 0.5;
 		// MUX: cutoffMod += slitherValue * slitherHowlModValue;
 		cutoffMod += filterCutoffSmartKnob.GetValue();
 		float filterFreq = fmap( cutoffMod, 1.0, fclamp( midiFreq * 16.0, 20.0, 20000.0 ) );
@@ -162,7 +174,7 @@ void handleMidi(){
 		} else if( midiEvent.type == NoteOff ) envGate = false;
 	}
 }
-void handleKnobs(){		
+void handleKnobs(){
 	float growlValue = 1.0 - hw.adc.GetFloat( growlKnob );
 	subMixSmartKnob.Update( growlValue );
 	subTypeSmartKnob.Update( growlValue );
@@ -183,12 +195,38 @@ void handleKnobs(){
 	ampEnvDecaySmartKnob.Update( decayKnobValue );
 	float clawsKnobValue = 1.0 - hw.adc.GetFloat( clawsKnob );
 	ampSmartKnob.Update( clawsKnobValue );
-	ampEnvModSmartKnob.Update( clawsKnobValue );
+	ampEnvModSmartKnob.Update( clawsKnobValue );	
+	// MUX: slitherValue = 1.0 - hw.adc.GetFloat( slitherKnob );
+	// MUX: lfoFrequencySmartKnob.Update( slitherValue );
+	// MUX: lfoTypeSmartKnob.Update( slitherValue );
 	driftValue = 1.0 - hw.adc.GetFloat( driftKnob );
 	shiftValue = 1.0 - hw.adc.GetFloat( shiftKnob );
 	driveValue = 1.0 - hw.adc.GetFloat( driveKnob );
-	slitherValue = 1.0 - hw.adc.GetFloat( slitherKnob );
 	slitherDriftModValue = 1.0 - hw.adc.GetFloat( slitherDriftModKnob );
+}
+void updateLfoWave(){
+	int lfoWave = lfoTypeSmartKnob.GetValue() * LFO_WAVEFORMS_COUNT ;  // int range 0 - 2
+	switch( lfoWave ){
+		case 0:
+			lfo.SetWaveform( lfo.WAVE_SIN );
+			break;
+		case 1:
+			lfo.SetWaveform( lfo.WAVE_TRI );
+			break;
+		case 2:
+			lfo.SetWaveform( lfo.WAVE_SAW );
+			break;
+		case 3:
+			lfo.SetWaveform( lfo.WAVE_RAMP );
+			break;
+		case 4:
+			lfo.SetWaveform( lfo.WAVE_SQUARE );
+			break;
+		case 5:
+			// TODO: IMPLEMENT RANDOM
+			lfo.SetWaveform( lfo.WAVE_SIN );
+			break;
+	}
 }
 void updateSubOscWave(){
 	int subWave = subTypeSmartKnob.GetValue() * SUBOSC_WAVEFORMS_COUNT ;  // int range 0 - 2
@@ -218,7 +256,7 @@ void updateSubOscWave(){
 			subOscOctave = 2;
 	}
 }
-void initADC(){
+void initAdc(){
 	AdcChannelConfig adcConfig[ ADC_CHANNELS_COUNT ];
     adcConfig[ driftKnob ].InitSingle( daisy::seed::A0 );
     adcConfig[ shiftKnob ].InitSingle( daisy::seed::A1 );
@@ -242,7 +280,7 @@ void handleSmartKnobSwitching(){
 		filterCutoffSmartKnob.Activate();
 		filterTypeSmartKnob.Deactivate();
 		filterResSmartKnob.Activate();
-		filterPolesSmartKnob.Deactivate();				
+		filterPolesSmartKnob.Deactivate();
 		pounceAttackSmartKnob.Activate();
 		ampEnvAttackSmartKnob.Deactivate();
 		pounceSustainSmartKnob.Activate();
@@ -251,13 +289,15 @@ void handleSmartKnobSwitching(){
 		ampEnvDecaySmartKnob.Deactivate();
 		ampSmartKnob.Activate();
 		ampEnvModSmartKnob.Deactivate();
+		lfoFrequencySmartKnob.Activate();
+		lfoTypeSmartKnob.Deactivate();
 	} else {
 		subMixSmartKnob.Deactivate();
 		subTypeSmartKnob.Activate();
 		filterCutoffSmartKnob.Deactivate();
 		filterTypeSmartKnob.Activate();
 		filterResSmartKnob.Deactivate();
-		filterPolesSmartKnob.Activate();				
+		filterPolesSmartKnob.Activate();
 		pounceAttackSmartKnob.Deactivate();
 		ampEnvAttackSmartKnob.Activate();
 		pounceSustainSmartKnob.Deactivate();
@@ -266,6 +306,8 @@ void handleSmartKnobSwitching(){
 		ampEnvDecaySmartKnob.Activate();
 		ampSmartKnob.Deactivate();
 		ampEnvModSmartKnob.Activate();
+		lfoFrequencySmartKnob.Deactivate();
+		lfoTypeSmartKnob.Activate();
 	}
 }
 void updateSuperSaw(){
@@ -281,7 +323,7 @@ void updateDistortion(){
 void updateFilters(){
 	float resValue = fmap( filterResSmartKnob.GetValue(), 0.0, 0.85 );
 	filter1.SetRes( resValue );
-	filter2.SetRes( resValue );	
+	filter2.SetRes( resValue );
 	combFilter.SetRevTime( fmap( filterResSmartKnob.GetValue(), 0.0, 1.0 ) );
 }
 void updatePounce(){
@@ -311,8 +353,10 @@ void initSmartKnobs(){
 	ampEnvDecaySmartKnob.Init( false, 0.2 );
 	ampSmartKnob.Init( true, 0.5 );
 	ampEnvModSmartKnob.Init( false, 0.5 );
+	lfoFrequencySmartKnob.Init( true, 0.5 );
+	lfoTypeSmartKnob.Init( false, 0.0 );
 }
-void initDSP(){
+void initDsp(){
 	superSaw.Init( SAMPLE_RATE );
 	subOsc.Init( SAMPLE_RATE );
 	distortion.Init();  // SETS GAIN TO ZERO
@@ -329,16 +373,20 @@ void initDSP(){
 	lfo.Init( SAMPLE_RATE );
 	lfo.SetWaveform( lfo.WAVE_SIN );
 }
+void updateLfo(){
+	updateLfoWave();
+	lfo.SetFreq( fmap( lfoFrequencySmartKnob.GetValue(), 0.05, 20.0 ) );
+}
 int main(){
 	hw.Init();
-	if( !debugMode ){		
+	if( !debugMode ){
 		MidiUsbHandler::Config midiConfig;
 		midiConfig.transport_config.periph = MidiUsbTransport::Config::INTERNAL;
 		midi.Init( midiConfig );
 	} else hw.StartLog();
 	initSmartKnobs();
-	initDSP();
-	initADC();
+	initDsp();
+	initAdc();
 	modeSwitch.Init( hw.GetPin( 14 ), 100 );
 	hw.SetAudioSampleRate( SaiHandle::Config::SampleRate::SAI_48KHZ );
 	hw.StartAudio( AudioCallback );
@@ -348,12 +396,12 @@ int main(){
 		else midiNote = ROOT_MIDI_NOTE;
 		midiFreq = mtof( midiNote );
 		modeSwitch.Debounce();
-		operationMode = !modeSwitch.Pressed();		
+		operationMode = !modeSwitch.Pressed();
 		// IF THE OPERATING MODE CHANGED, CHANGE MODE ON THE SMART KNOBS
 		if( operationMode != lastOperationMode ) handleSmartKnobSwitching();
 		lastOperationMode = operationMode;
 		handleKnobs();
-		lfo.SetFreq( fmap( slitherValue, 0.05, 20.0 ) );
+		updateLfo();
 		updateSuperSaw();
 		updateSubOsc();
 		updateDistortion();
@@ -364,7 +412,7 @@ int main(){
 		hw.SetLed( !operationMode ); // LIGHT THE LED WHEN IN ALT MODE
 		if( debugMode ){
 			debugCount++;
-			if( debugCount >= 500 ){	
+			if( debugCount >= 500 ){
 				// REPORT STUFF
 				debugCount = 0;
 			}
