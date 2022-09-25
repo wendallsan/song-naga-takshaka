@@ -1,4 +1,5 @@
 #include "daisy_seed.h"
+#include "Utility/dsp.h"
 #include "SmartKnob.h"
 namespace daisysp {
     void SmartKnob::Init( bool isActive, float initalValue ){
@@ -17,18 +18,11 @@ namespace daisysp {
                 if( !fcompare( valueAtActivation_, currentActualKnobValue_ ) ){
                     isWaitingToInterpolate_ = false;
                     isInterpolating_ = true;
-                }
-                outputValue_ = lastActiveValue_;
+                } outputValue_ = lastActiveValue_;
             } else if( isInterpolating_ ){
-                float interpolationValue;
-                // MOVE TOWARDS THE CURRENT KNOB VALUE
-                interpolationValue = valueAtLastUpdate_ < currentActualKnobValue_?
-                     valueAtLastUpdate_ + 0.002 :
-                     valueAtLastUpdate_ - 0.002;
-                if( fcompare( interpolationValue, currentActualKnobValue_, 0.002 ) ){
-                    isInterpolating_ = false;
-                    outputValue_ = lastActiveValue_ = valueAtLastUpdate_ = currentActualKnobValue_;
-                } else outputValue_ = valueAtLastUpdate_ = interpolationValue;
+                fonepole( outputValue_, currentActualKnobValue_, 0.002 );
+                lastActiveValue_ = outputValue_;
+                if( fcompare( outputValue_, currentActualKnobValue_, 0.002 ) ) isInterpolating_ = false;
             } else outputValue_ = lastActiveValue_ = currentActualKnobValue_;
         } else outputValue_ = lastActiveValue_;
     }
