@@ -80,7 +80,7 @@ float driftValue,
 	fangsMixValue,
 	delayTime;
 int subOscOctave = 1,
-	fangEffectType = 1,
+	fangEffectType = 3,
 	midiNote = ROOT_MIDI_NOTE;
 bool debugMode = false,
 	operationMode = OP_MODE_NORMAL,
@@ -115,6 +115,8 @@ Overdrive distortion;
 Adsr pounce, ampEnv;
 static DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS delayLine;
 static ReverbSc DSY_SDRAM_BSS reverb;
+Chorus chorus;
+Flanger flanger;
 void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){
 	float reverbSignal;
 	for( size_t i = 0; i < size; i++ ){		
@@ -125,11 +127,11 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		// DISABLED FOR PRE-MUX TESTING: THIS IS THE ACTUAL CORRECT SETTING, BUT WE'RE USING THIS
 		// KNOB VALUE FOR TESTING OTHER FEATURES CURRENTLY.
 		// modDriftValue += slitherValue * ( ( slitherValue * slitherDriftModValue ) - ( slitherDriftModValue / 2.0 ) );
-		superSaw.SetDrift( fclamp( modDriftValue, 0.0, 1.0 ) );
+		superSaw.SetDrift( fclamp( modDriftValue, 0.0, 0.999 ) );
 		// MUX: float modShiftValue = shiftValue + ( pounceValue * pounceShiftModValue );
 		float modShiftValue = shiftValue;
 		// MUX: modShiftValue += slitherValue * ( ( slitherValue * slitherShiftModValue ) - ( slitherShiftModValue / 2.0 ) );
-		superSaw.SetShift( fclamp( modShiftValue, 0.0, 1.0 ) );
+		superSaw.SetShift( fclamp( modShiftValue, 0.0, 0.999 ) );
 		// SET ADJUST TO 1.0 - 0.8 DEPENDING ON THE SUB KNOB
 		float superSawAdjust = fmap( 1.0 - subMixSmartKnob.GetValue(), 0.8, 1.0 );
 		float mixedSignal = superSaw.Process() * superSawAdjust;
@@ -194,32 +196,24 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		float finalSignal = filteredSignal * ampMod;
 		
 		fonepole( fangsTimeCurrentValue, fangsTimeTargetValue, 0.0002f );
-		
-
-		// TODO: SWTCH EFFECTS TYPE
-
-		// if( fangEffectType == EFFECT_MODE_ECHO ){
-		if( fangEffectType == 0 ){
+		// TODO: SWTCH EFFECTS TYPE HANDLING VIA SMARTKNOB
+		if( fangEffectType == EFFECT_MODE_ECHO ){
 			delayLine.SetDelay( fangsTimeCurrentValue * MAX_DELAY );
 			float delaySignal = delayLine.Read(); // READ FROM THE DELAY LINE
 			delayLine.Write(  // WRITE TO THE DELAY LINE
-				( finalSignal * ( 1.0 - fangsAmountValue ) ) +
-					( delaySignal * fangsAmountValue )
+				( finalSignal * ( 1.0 - fangsAmountValue ) ) + ( delaySignal * fangsAmountValue )
 			);
-			finalSignal = ( finalSignal * (1.0 - fangsMixValue ) ) +
-				( delaySignal * fangsMixValue );
-		// } else if( fangEffectType == EFFECT_MODE_REVERB ) {
-		} else if( fangEffectType == 1 ) {
-			
-			reverb.Process( finalSignal, 0.f, &reverbSignal1, 0 );
-			finalSignal = ( finalSignal * ( 1.0 - fangsMixValue ) ) +
-				( reverbSignal1 * fangsMixValue );
+			finalSignal = ( finalSignal * (1.0 - fangsMixValue ) ) + ( delaySignal * fangsMixValue );
+		} else if( fangEffectType == EFFECT_MODE_REVERB ) {
+			reverb.Process( finalSignal, 0.f, &reverbSignal, 0 );
+			finalSignal = ( finalSignal * ( 1.0 - fangsMixValue ) ) + ( reverbSignal * fangsMixValue );
 		} else if( fangEffectType == EFFECT_MODE_CHORUS ){
-
+			chorus.Process( finalSignal );
+			finalSignal = ( finalSignal * ( 1.0 - fangsMixValue ) ) + ( chorus.GetLeft() * fangsMixValue );
 		} else if( fangEffectType == EFFECT_MODE_FLANGER){
-
+			float flangerSignal = flanger.Process( finalSignal );
+			finalSignal = ( finalSignal * ( 1.0 - fangsMixValue ) ) + ( flangerSignal * fangsMixValue );
 		}
-
 		out[0][i] = out[1][i] = finalSignal;
 	}
 }
@@ -447,6 +441,12 @@ void initDsp(){
 	lfo.SetWaveform( lfo.WAVE_SIN );
 	delayLine.Init();
 	reverb.Init( SAMPLE_RATE );
+	chorus.Init( SAMPLE_RATE );
+    // TODO: CONTROL LFO FREQ WITH A SMARTKNOB
+	chorus.SetLfoFreq( 0.33f, 0.2f ); // TODO: 2 ARGS R 4 STEREO OUTS
+	flanger.Init( SAMPLE_RATE );
+	// TODO: CONTROL LFO DEPTH WITH A SMARTKNOB
+	flanger.SetLfoDepth( 0.8f );
 }
 void updateLfo(){
 	updateLfoWave();
@@ -455,9 +455,13 @@ void updateLfo(){
 void updateFangs(){
 	reverb.SetFeedback( fangsAmountValue );
 	reverb.SetLpFreq( fmap( fangsTimeTargetValue, 70.f, 18000.f ) );
+	chorus.SetDelay( fangsTimeTargetValue, fangsTimeTargetValue ); // TODO: 2 ARGS R 4 STEREO OUTS
+	chorus.SetLfoDepth( fangsAmountValue );
+	flanger.SetLfoFreq( fmap( fangsTimeTargetValue, 0.01f, 5.f ) );
+    flanger.SetFeedback( fangsAmountValue );
 }
 int main(){
-	hw.Init( true );
+	hw.Init();
 	if( !debugMode ){
 		MidiUsbHandler::Config midiConfig;
 		midiConfig.transport_config.periph = MidiUsbTransport::Config::INTERNAL;
