@@ -80,6 +80,7 @@ float driftValue,
 	fangsMixValue,
 	delayTime;
 int subOscOctave = 1,
+	fangEffectType = 1,
 	midiNote = ROOT_MIDI_NOTE;
 bool debugMode = false,
 	operationMode = OP_MODE_NORMAL,
@@ -113,11 +114,11 @@ Comb combFilter;
 Overdrive distortion;
 Adsr pounce, ampEnv;
 static DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS delayLine;
+static ReverbSc DSY_SDRAM_BSS reverb;
 void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){
-	for( size_t i = 0; i < size; i++ ){
-		
-		float pounceValue = pounce.Process( envGate );
-		
+	float reverbSignal;
+	for( size_t i = 0; i < size; i++ ){		
+		float pounceValue = pounce.Process( envGate );		
 		// MUX: float slitherValue = lfo.Process();
 		// MUX: float modDriftValue = driftValue + ( pounceValue * pounceDriftModValue );
 		float modDriftValue = driftValue;
@@ -193,17 +194,33 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		float finalSignal = filteredSignal * ampMod;
 		
 		fonepole( fangsTimeCurrentValue, fangsTimeTargetValue, 0.0002f );
-		delayLine.SetDelay( fangsTimeCurrentValue * MAX_DELAY );
+		
 
-		float delaySignal = delayLine.Read(); // READ FROM THE DELAY LINE
+		// TODO: SWTCH EFFECTS TYPE
 
-		delayLine.Write(  // WRITE TO THE DELAY LINE
-			( finalSignal * ( 1.0 - fangsAmountValue ) ) +
-				( delaySignal * fangsAmountValue )
-		);
+		// if( fangEffectType == EFFECT_MODE_ECHO ){
+		if( fangEffectType == 0 ){
+			delayLine.SetDelay( fangsTimeCurrentValue * MAX_DELAY );
+			float delaySignal = delayLine.Read(); // READ FROM THE DELAY LINE
+			delayLine.Write(  // WRITE TO THE DELAY LINE
+				( finalSignal * ( 1.0 - fangsAmountValue ) ) +
+					( delaySignal * fangsAmountValue )
+			);
+			finalSignal = ( finalSignal * (1.0 - fangsMixValue ) ) +
+				( delaySignal * fangsMixValue );
+		// } else if( fangEffectType == EFFECT_MODE_REVERB ) {
+		} else if( fangEffectType == 1 ) {
+			
+			reverb.Process( finalSignal, 0.f, &reverbSignal1, 0 );
+			finalSignal = ( finalSignal * ( 1.0 - fangsMixValue ) ) +
+				( reverbSignal1 * fangsMixValue );
+		} else if( fangEffectType == EFFECT_MODE_CHORUS ){
 
-		out[0][i] = out[1][i] = ( finalSignal * (1.0 - fangsMixValue ) ) +
-			( delaySignal * fangsMixValue );
+		} else if( fangEffectType == EFFECT_MODE_FLANGER){
+
+		}
+
+		out[0][i] = out[1][i] = finalSignal;
 	}
 }
 void handleMidi(){
@@ -429,16 +446,15 @@ void initDsp(){
 	lfo.Init( SAMPLE_RATE );
 	lfo.SetWaveform( lfo.WAVE_SIN );
 	delayLine.Init();
+	reverb.Init( SAMPLE_RATE );
 }
 void updateLfo(){
 	updateLfoWave();
 	// FANGS: lfo.SetFreq( fmap( lfoFrequencySmartKnob.GetValue(), 0.05, 20.0 ) );	
 }
 void updateFangs(){
-	// fangsTimeValue == [0.0 ... 1.0]
-	// size_t delayTimeSamples = fmap( fangsTimeValue, 1.0, 2.0 * SAMPLE_RATE );
-	// delayLine.SetDelay( delayTimeSamples );
-	// delayLine.SetDelay( fangsTimeValue * MAX_DELAY );
+	reverb.SetFeedback( fangsAmountValue );
+	reverb.SetLpFreq( fmap( fangsTimeTargetValue, 70.f, 18000.f ) );
 }
 int main(){
 	hw.Init( true );
