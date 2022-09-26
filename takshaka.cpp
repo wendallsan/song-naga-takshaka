@@ -6,7 +6,6 @@
 #define SAMPLE_RATE 48000.0
 #define MAX_DELAY 96000
 
-
 /*
 FANGS TIME:
 disable the drive knob, slither knob, and slither drift mod knob
@@ -15,7 +14,6 @@ Fangs Time
 Fangs Amount
 Fangs Mix
 */
-
 
 using namespace daisy;
 using namespace daisysp;
@@ -74,13 +72,11 @@ float driftValue,
 	slitherValue,
 	slitherDriftModValue,
 	combFilterBuffer[ 9600 ],
-	fangsTimeTargetValue,
 	fangsTimeCurrentValue,
-	fangsAmountValue,
 	fangsMixValue,
 	delayTime;
 int subOscOctave = 1,
-	fangEffectType = 3,
+	fangsEffectType = EFFECT_MODE_ECHO,
 	midiNote = ROOT_MIDI_NOTE;
 bool debugMode = false,
 	operationMode = OP_MODE_NORMAL,
@@ -106,7 +102,10 @@ SmartKnob subMixSmartKnob,
 	lfoFrequencySmartKnob,
 	lfoTypeSmartKnob,
 	fangsTimeSmartKnob,
-	fangsEffectTypeSmartKnob;
+	fangsEffectTypeSmartKnob,
+	fangsEffectTimeSmartKnob,
+	fangsAmount1SmartKnob,
+	fangsAmount2SmartKnob;
 SuperSawOsc superSaw;
 Oscillator subOsc, lfo;
 Svf filter1, filter2;
@@ -192,25 +191,22 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		float ampMod = ampEnv.Process( envGate ) * ampEnvModSmartKnob.GetValue();
 		// MUX: ampMod += slitherValue * ( ( slitherValue * slitherDriftModValue ) - ( slitherDriftModValue / 2.0 ) );
 		ampMod = fclamp( ampMod + ampSmartKnob.GetValue(), 0.0, 1.0 );
-		//float filteredSignal = superSaw.Process();
-		float finalSignal = filteredSignal * ampMod;
-		
-		fonepole( fangsTimeCurrentValue, fangsTimeTargetValue, 0.0002f );
-		// TODO: SWTCH EFFECTS TYPE HANDLING VIA SMARTKNOB
-		if( fangEffectType == EFFECT_MODE_ECHO ){
+		float finalSignal = filteredSignal * ampMod;		
+		fonepole( fangsTimeCurrentValue, fangsTimeSmartKnob.GetValue(), 0.0002f );
+		if( fangsEffectType == EFFECT_MODE_ECHO ){
 			delayLine.SetDelay( fangsTimeCurrentValue * MAX_DELAY );
 			float delaySignal = delayLine.Read(); // READ FROM THE DELAY LINE
 			delayLine.Write(  // WRITE TO THE DELAY LINE
-				( finalSignal * ( 1.0 - fangsAmountValue ) ) + ( delaySignal * fangsAmountValue )
+				( finalSignal * ( 1.0 - fangsAmount1SmartKnob.GetValue() ) ) + ( delaySignal * fangsAmount1SmartKnob.GetValue() )
 			);
 			finalSignal = ( finalSignal * (1.0 - fangsMixValue ) ) + ( delaySignal * fangsMixValue );
-		} else if( fangEffectType == EFFECT_MODE_REVERB ) {
+		} else if( fangsEffectType == EFFECT_MODE_REVERB ) {
 			reverb.Process( finalSignal, 0.f, &reverbSignal, 0 );
 			finalSignal = ( finalSignal * ( 1.0 - fangsMixValue ) ) + ( reverbSignal * fangsMixValue );
-		} else if( fangEffectType == EFFECT_MODE_CHORUS ){
+		} else if( fangsEffectType == EFFECT_MODE_CHORUS ){
 			chorus.Process( finalSignal );
 			finalSignal = ( finalSignal * ( 1.0 - fangsMixValue ) ) + ( chorus.GetLeft() * fangsMixValue );
-		} else if( fangEffectType == EFFECT_MODE_FLANGER){
+		} else if( fangsEffectType == EFFECT_MODE_FLANGER){
 			float flangerSignal = flanger.Process( finalSignal );
 			finalSignal = ( finalSignal * ( 1.0 - fangsMixValue ) ) + ( flangerSignal * fangsMixValue );
 		}
@@ -249,6 +245,12 @@ void handleKnobs(){
 	float decayKnobValue = 1.0 - hw.adc.GetFloat( decayKnob );
 	pounceDecaySmartKnob.Update( decayKnobValue );
 	ampEnvDecaySmartKnob.Update( decayKnobValue );
+	float fangsTimeValue = 1.0 - hw.adc.GetFloat( driveKnob );
+	fangsTimeSmartKnob.Update( fangsTimeValue );
+	fangsEffectTypeSmartKnob.Update( fmap( fangsTimeValue, 0.f, 0.99f ) );
+	float fangsAmountValue = 1.0 - hw.adc.GetFloat( slitherKnob );
+	fangsAmount1SmartKnob.Update( fangsAmountValue );
+	fangsAmount2SmartKnob.Update( fangsAmountValue );	
 	float clawsKnobValue = 1.0 - hw.adc.GetFloat( clawsKnob );
 	ampSmartKnob.Update( clawsKnobValue );
 	ampEnvModSmartKnob.Update( clawsKnobValue );
@@ -260,8 +262,6 @@ void handleKnobs(){
 	shiftValue = 1.0 - hw.adc.GetFloat( shiftKnob );
 	// FANGS: driveValue = 1.0 - hw.adc.GetFloat( driveKnob );
 	// FANGS: slitherDriftModValue = 1.0 - hw.adc.GetFloat( slitherDriftModKnob );
-	fangsTimeTargetValue = 1.0 - hw.adc.GetFloat( driveKnob );
-	fangsAmountValue = 1.0 - hw.adc.GetFloat( slitherKnob );
 	fangsMixValue = 1.0 - hw.adc.GetFloat( slitherDriftModKnob );
 }
 void updateLfoWave(){
@@ -353,6 +353,8 @@ void handleSmartKnobSwitching(){
 		lfoTypeSmartKnob.Deactivate();
 		fangsTimeSmartKnob.Activate();
 		fangsEffectTypeSmartKnob.Deactivate();
+		fangsAmount1SmartKnob.Activate();
+		fangsAmount2SmartKnob.Deactivate();
 	} else {
 		subMixSmartKnob.Deactivate();
 		subTypeSmartKnob.Activate();
@@ -372,6 +374,8 @@ void handleSmartKnobSwitching(){
 		lfoTypeSmartKnob.Activate();
 		fangsTimeSmartKnob.Deactivate();
 		fangsEffectTypeSmartKnob.Activate();
+		fangsAmount1SmartKnob.Deactivate();
+		fangsAmount2SmartKnob.Activate();
 	}
 }
 void updateSuperSaw(){
@@ -417,11 +421,13 @@ void initSmartKnobs(){
 	pounceDecaySmartKnob.Init( true,  0.2 );
 	ampEnvDecaySmartKnob.Init( false, 0.2 );
 	ampSmartKnob.Init( true, 0.5 );
-	ampEnvModSmartKnob.Init( false, 0.5 );
+	ampEnvModSmartKnob.Init( false, 0.8 );
 	lfoFrequencySmartKnob.Init( true, 0.5 );
 	lfoTypeSmartKnob.Init( false, 0.0 );
 	fangsTimeSmartKnob.Init( true, 0.5 );
 	fangsEffectTypeSmartKnob.Init( false, 0.0 );
+	fangsAmount1SmartKnob.Init( true, 0.2 );
+	fangsAmount2SmartKnob.Init( false, 0.2 );
 }
 void initDsp(){
 	superSaw.Init( SAMPLE_RATE );
@@ -442,23 +448,22 @@ void initDsp(){
 	delayLine.Init();
 	reverb.Init( SAMPLE_RATE );
 	chorus.Init( SAMPLE_RATE );
-    // TODO: CONTROL LFO FREQ WITH A SMARTKNOB
-	chorus.SetLfoFreq( 0.33f, 0.2f ); // TODO: 2 ARGS R 4 STEREO OUTS
 	flanger.Init( SAMPLE_RATE );
-	// TODO: CONTROL LFO DEPTH WITH A SMARTKNOB
-	flanger.SetLfoDepth( 0.8f );
 }
 void updateLfo(){
 	updateLfoWave();
 	// FANGS: lfo.SetFreq( fmap( lfoFrequencySmartKnob.GetValue(), 0.05, 20.0 ) );	
 }
 void updateFangs(){
-	reverb.SetFeedback( fangsAmountValue );
-	reverb.SetLpFreq( fmap( fangsTimeTargetValue, 70.f, 18000.f ) );
-	chorus.SetDelay( fangsTimeTargetValue, fangsTimeTargetValue ); // TODO: 2 ARGS R 4 STEREO OUTS
-	chorus.SetLfoDepth( fangsAmountValue );
-	flanger.SetLfoFreq( fmap( fangsTimeTargetValue, 0.01f, 5.f ) );
-    flanger.SetFeedback( fangsAmountValue );
+	fangsEffectType = fangsEffectTypeSmartKnob.GetValue() * EFFECT_MODES_COUNT;
+	reverb.SetFeedback( fangsAmount1SmartKnob.GetValue() );
+	reverb.SetLpFreq( fmap( fangsTimeSmartKnob.GetValue(), 70.f, 18000.f ) );
+	chorus.SetDelay( fangsTimeSmartKnob.GetValue(), fangsTimeSmartKnob.GetValue() ); // TODO: 2 ARGS R 4 STEREO OUTS
+	chorus.SetLfoDepth( fangsAmount1SmartKnob.GetValue() );
+	chorus.SetLfoFreq( fmap( fangsAmount2SmartKnob.GetValue(), 0.01f, 5.f ), 0.2f ); // TODO: 2 ARGS R 4 STEREO OUTS
+	flanger.SetLfoFreq( fmap( fangsTimeSmartKnob.GetValue(), 0.01f, 5.f ) );
+    flanger.SetFeedback( fangsAmount1SmartKnob.GetValue() );
+	flanger.SetLfoDepth( fmap( fangsAmount2SmartKnob.GetValue(), 0.01f, 5.f ) );
 }
 int main(){
 	hw.Init();
