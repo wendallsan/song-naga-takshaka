@@ -1,9 +1,11 @@
 #include "daisy_seed.h"
-#include "SuperSawOsc.h"
+#include "BlockSuperSawOsc.h"
+#include "BlockOscillator.h"
+#include "BlockAtone.h"
 #include "daisysp.h"
 #include <algorithm>
 namespace daisysp {
-    void SuperSawOsc::Init( float sampleRate ){
+    void BlockSuperSawOsc::Init( float sampleRate ){
         sampleRate_ = sampleRate;
         freq_ = 220.0; // INIT FREQ TO 220HZ
         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){
@@ -21,18 +23,23 @@ namespace daisysp {
         float hpfFreq = freq_;
         hpf_.SetFreq( hpfFreq );
     }   
-    float SuperSawOsc::Process(){        
-		float superSawSignal = 0.0;
-		for( int i = 0; i < NUMBER_OF_SAWS; i++ ) 
-            superSawSignal += ( superSaws_[ i ].Process() );
-        return hpf_.Process( superSawSignal );        
+    void BlockSuperSawOsc::Process( float *buf, size_t size ){
+        float sawBuffers[ NUMBER_OF_SAWS ][ size ];
+        for( int i = 0; i < NUMBER_OF_SAWS; i++ )
+            superSaws_[ i ].Process ( sawBuffers[ i ], size );
+        for( size_t i = 0; i < size; i++ ){
+            buf[ i ] = 0.f;
+            for( int j = 0; j < NUMBER_OF_SAWS; j++ )
+                buf[ i ] += sawBuffers[ j ][ i ];            
+        }
+        hpf_.Process( buf, size );        
     }
-    void SuperSawOsc::SetFreq( float freq ){
+    void BlockSuperSawOsc::SetFreq( float freq ){
         freq_ = freq;
         // WE DON'T NEED TO SET THE SET FREQ OF THE OSCILLATORS, THEY WILL 
         // CHANGE FREQUENCY NEXT TIME SETDRIFT IS CALLED
     }
-    void SuperSawOsc::Reset(){
+    void BlockSuperSawOsc::Reset(){
         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){
             float rando = rand() / RAND_MAX;
             float newPhase = rando + phases_[ i ],
@@ -49,7 +56,7 @@ namespace daisysp {
             superSaws_[ i ].PhaseAdd( delta );
         }
     }
-    void SuperSawOsc::SetDrift( float drift ){
+    void BlockSuperSawOsc::SetDrift( float drift ){
         drift_ = drift;
         intensityKnobCurveIndex_ = drift * CURVE_POINTS;
         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST AMPLITUDES
@@ -60,7 +67,7 @@ namespace daisysp {
 			);
 		}
     }
-    void SuperSawOsc::SetShift( float shift ){
+    void BlockSuperSawOsc::SetShift( float shift ){
         shift_ = shift;
         detuneKnobCurveIndex_ = shift * CURVE_POINTS;
         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){ // ADJUST FREQUENCIES
@@ -70,14 +77,14 @@ namespace daisysp {
 			);
 		}
     }
-    float SuperSawOsc::lookupDetune( float knobAmount ){
+    float BlockSuperSawOsc::lookupDetune( float knobAmount ){
         float minDetune = detuneLookupTable_[ detuneKnobCurveIndex_ ];
         float maxDetune = detuneLookupTable_[ detuneKnobCurveIndex_ + 1 ];
         float minCurveValue = ( float )detuneKnobCurveIndex_ / CURVE_POINTS;
         float maxCurveValue = ( ( float )detuneKnobCurveIndex_ + 1 ) / CURVE_POINTS;
         return minDetune + ( ( maxDetune - minDetune ) * ( ( knobAmount - minCurveValue ) / ( maxCurveValue / minCurveValue ) ) );
     }
-    float SuperSawOsc::lookupAmp( float knobAmount ){
+    float BlockSuperSawOsc::lookupAmp( float knobAmount ){
         float minAmp = ampLookupTable_[ intensityKnobCurveIndex_  ];
         float maxAmp = ampLookupTable_[ intensityKnobCurveIndex_ + 1];
         float minCurveValue = ( float )intensityKnobCurveIndex_ / CURVE_POINTS;
