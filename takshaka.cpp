@@ -14,16 +14,17 @@
 #define MAX_DELAY 96000
 #define NUM_VOICES 4
 #define MUX_CHANNELS_COUNT 8
-#define PIN_ADC_MUX1_IN daisy::seed::A0
-#define PIN_ADC_MUX2_IN daisy::seed::A1
 #define PIN_MUX_CH_A 12
 #define PIN_MUX_CH_B 13
 #define PIN_MUX_CH_C 14
+#define PIN_ADC_MUX1_IN daisy::seed::A0
+#define PIN_ADC_MUX2_IN daisy::seed::A1
 #define PIN_SC_MOD_IN daisy::seed::A2
 #define PIN_FT_IN daisy::seed::A3
 #define PIN_FA_IN daisy::seed::A4
 #define PIN_FM_IN daisy::seed::A5
 #define PIN_CLAWS_IN daisy::seed::A6
+#define MODE_SWITCH_PIN 11
 
 /*
 FANGS TIME:
@@ -66,21 +67,6 @@ enum mux2Signals{
 	MUX2_SS_MOD,
 	MUX2_SH_MOD
 };
-// enum AdcChannel {
-// 	driftKnob,
-// 	shiftKnob,
-// 	growlKnob,
-// 	howlKnob,
-// 	resKnob,
-// 	driveKnob,
-// 	attackKnob,
-// 	sustainKnob,
-// 	decayKnob,
-// 	clawsKnob,
-// 	slitherKnob,
-// 	slitherDriftModKnob,
-// 	ADC_CHANNELS_COUNT
-// };
 enum SubOscWaveforms {
 	SUBOSC_SINE_1,
 	SUBOSC_SINE_2,
@@ -230,7 +216,6 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		combFilters[ j ].SetFreq( fclamp( filterFreq, 20.f, 10000.f ) );
 	*/
 
-
 	if( debugMode ){
 		uint8_t tic = clock.Process();
         if( tic ){
@@ -242,8 +227,6 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 	float output[ size ];
 	for( size_t i = 0; i < size; i++ ) output[ i ] = 0.f;
 	for( int currentVoice = 0; currentVoice < NUM_VOICES; currentVoice++ ){
-
-		// NOW WE PROCESS THE ENVELOPES, AS THEY ARE PER-VOICE
 		// GET THE POUNCE ENV VALUE
 		float pounceValue = pounces[ currentVoice ].Process( envGates[ currentVoice ] );
 		// APPLY POUNCE ENV TO MODDABLE VALUES
@@ -262,15 +245,13 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		);
 		filters1[ currentVoice ].SetFreq( cutoffFreq );
 		filters2[ currentVoice ].SetFreq( cutoffFreq );
-		// float ampModValue = fclamp( modClawsValue + ( ampEnvValue * ampEnvModSmartKnob.GetValue() ), 0.f, 1.f );
-		float ampModValue = (
-				modClawsValue + 
-				( ampEnvValue * ampEnvModSmartKnob.GetValue() ) 
+		float ampModValue = fclamp(
+				modClawsValue + ( ampEnvValue * ampEnvModSmartKnob.GetValue() ),
+				0.f,
+				1.f 
 			) * ( 1.f / sqrt( NUM_VOICES ) ); // ADJUST VOLUME BY NUMBER OF VOICES
-		// TODO: WE MIGHT STILL NEED TO FCLAMP THE VALUE BEFORE ADJUSTING BY NUM OF VOICES
-
+		
 		// ONCE ALL THE MODS ARE ASSIGNED, DEAL WITH THE AUDIO BUFFERS
-		// GET SUPERSAW SIGNALS AND PUT THEM IN THE MIXED SIGNAL BUFFER
 		float mixedSignalBuffer[ size ];
 		superSaws[ currentVoice ].Process( mixedSignalBuffer, size );
 
@@ -343,8 +324,6 @@ void handleMidi(){
 	}
 }
 void handleKnobs(){
-
-	// MUX 1 STUFF
 	driftValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX1, MUX1_DRIFT );
 	shiftValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX1, MUX1_SHIFT );
 	float growlValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX1, MUX1_GROWL );
@@ -599,7 +578,7 @@ void initDsp(){
 }
 void updateLfo(){
 	updateLfoWave();
-	// FANGS: lfo.SetFreq( fmap( lfoFrequencySmartKnob.GetValue(), 0.f5, 20.f ) );
+	lfo.SetFreq( fmap( lfoFrequencySmartKnob.GetValue(), 0.5f, 20.f ) );
 }
 void updateFangs(){
 	// fangsEffectType = fangsEffectTypeSmartKnob.GetValue() * EFFECT_MODES_COUNT;
@@ -627,8 +606,8 @@ int main(){
 	initSmartKnobs();
 	initDsp();
 	initAdc();
-	modeSwitch.Init( hw.GetPin( 14 ), 100 );
-	hw.StartAudio( AudioCallback );
+	modeSwitch.Init( hw.GetPin( MODE_SWITCH_PIN ), 100 );
+	hw.StartAudio( AudioCallback ); 
 	int debugCount = 0;
 	while( true ){
 		if( !debugMode ) handleMidi();
@@ -662,27 +641,10 @@ int main(){
 		if( debugMode ){
 			debugCount++;
 			if( debugCount >= 500 ){
-				for( int i = 0; i < NUM_VOICES; i++ )
-					hw.Print( envGates[ i ]? "!" : "." );
-				hw.PrintLine( "" );
-					
-				hw.Print( "drift: " );
-				hw.Print( FLT_FMT3, FLT_VAR3( driftValue ) );
-				hw.Print( ", shift:" );
-				hw.Print( FLT_FMT3, FLT_VAR3( shiftValue ) );
-				hw.Print( ", growl:" );
-				hw.Print( FLT_FMT3, FLT_VAR3( subMixSmartKnob.GetValue() ) );
-				hw.Print( ", subwave:" );
-				hw.PrintLine( FLT_FMT3, FLT_VAR3( subTypeSmartKnob.GetValue() ) );
+
 				debugCount = 0;
 			}
-
-		
-		
 		}
-
-
-
 		System::Delay( 1 );
 	}
 }
