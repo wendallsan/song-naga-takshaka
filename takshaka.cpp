@@ -5,7 +5,6 @@
 #include "BlockOscillator.h"
 #include "BlockSvf.h"
 #include "BlockComb.h"
-// #include "BlockOverdrive.h"
 // #include "BlockReverbSc.h"
 // #include "BlockChorus.h"
 // #include "BlockFlanger.h"
@@ -153,7 +152,6 @@ BlockOscillator subOscs[ NUM_VOICES ];
 Oscillator lfo;
 BlockSvf filters1[ NUM_VOICES ], filters2[ NUM_VOICES ];
 BlockComb combFilters[ NUM_VOICES ];
-// Overdrive distortions[ NUM_VOICES ];
 Adsr pounces[ NUM_VOICES ], ampEnvs[ NUM_VOICES ];
 // TODO: CAN WE BLOCK THE DELAY LINE?
 // static DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS delayLine;
@@ -204,7 +202,7 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 	float modClawsValue = ampSmartKnob.GetValue() + 
 		lfoValue * ( ( lfoValue * slitherClawsModValue ) - ( slitherClawsModValue / 2.f ) );
 		
-	// SET MIX KNOB TO 1.0 - 0.8 DEPENDING ON THE SUB KNOB
+	// SET MIX TO 1.0 - 0.8 DEPENDING ON THE SUB KNOB
 	float superSawMixMod = fmap( 1.0 - subMixSmartKnob.GetValue(), 0.8, 1.0 );
 	/*
 		float filterFreqs[ size ];
@@ -238,10 +236,10 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 
 		superSaws[ currentVoice ].SetDrift( fclamp( thisModDriftValue, 0.f, 0.999 ) );
 		superSaws[ currentVoice ].SetShift( fclamp( thisModShiftValue, 0.f, 0.999 ) );
-		float cutoffFreq = fmap( 
-			thisModCutoffValue,
-			1.0,
-			fclamp( midiFreqs[ currentVoice ] * 16.f, 0.f, 20000.f )
+		float cutoffFreq = fclamp(
+			exp2f( thisModCutoffValue * 14.288 ),
+			1.f,
+			20000.f
 		);
 		filters1[ currentVoice ].SetFreq( cutoffFreq );
 		filters2[ currentVoice ].SetFreq( cutoffFreq );
@@ -263,14 +261,9 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		for( size_t currentSample = 0; currentSample < size; currentSample++ ) {
 			mixedSignalBuffer[ currentSample ] = mixedSignalBuffer[ currentSample ] * superSawMixMod + 
 			subSampleBuffer[ currentSample ] * subMixSmartKnob.GetValue();
-
-			// TODO: DISTORTION ALWAYS SEEM TO AFFECT THE WAVESHAPE, EVEN WHEN IT
-			// HAS GAIN == 0.  RATHER THAN LEAVING IT ALWAYS IN THE SIGNAL CHAIN,
-			// MAYBE WE NEED TO MIX IT WITH THE CLEAN SIGNAL, AT LEAST AT LOW
-			// DRIVE SETTINGS?
-			// FANGS: mixedSignal = distortion.Process( mixedSignal );
 		}
-		
+		for( size_t i = 0; i < size; i++ ) // HANDLE DRIVE LEVEL INTO THE FILTER
+			mixedSignalBuffer[ i ] = SoftClip( mixedSignalBuffer[ i ] * ( 1.f + fmap( driveValue, 0.f, 8.f ) ) );
 		filterSignal( currentVoice, mixedSignalBuffer, size );
 		// TODO: IMPLEMENT FANGS EFFECTS SECTION
 		// fonepole( fangsTimeCurrentValue, fangsTimeSmartKnob.GetValue(), 0.002f );
@@ -342,8 +335,6 @@ void handleKnobs(){
 	float sustainKnobValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX1, MUX1_SUSTAIN );
 	pounceSustainSmartKnob.Update( sustainKnobValue );
 	ampEnvSustainSmartKnob.Update( sustainKnobValue );
-
-	// MUX 2 STUFF
 	float decayKnobValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX2, MUX2_DECAY );
 	pounceDecaySmartKnob.Update( decayKnobValue );
 	ampEnvDecaySmartKnob.Update( decayKnobValue );
@@ -356,8 +347,6 @@ void handleKnobs(){
 	slitherDriftModValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX2, MUX2_SD_MOD );
 	slitherShiftModValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX2, MUX2_SS_MOD );
 	slitherHowlModValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX2, MUX2_SH_MOD );
-	
-	// NON-MUXED STUFF
 	slitherClawsModValue = 1.0 - hw.adc.GetFloat( ADC_SC_MOD );
 	float fangsTimeValue = 1.0 - hw.adc.GetFloat( ADC_FT );
 	fangsTimeSmartKnob.Update( fangsTimeValue );
@@ -369,7 +358,6 @@ void handleKnobs(){
 	float clawsValue = 1.0 - hw.adc.GetFloat( ADC_CLAWS );
 	ampSmartKnob.Update( clawsValue );
 	ampEnvModSmartKnob.Update( clawsValue );
-
 }
 void updateLfoWave(){
 	int lfoWave = lfoTypeSmartKnob.GetValue() * LFO_WAVEFORMS_COUNT ;  // int range 0 - 2
@@ -493,19 +481,6 @@ void handleSmartKnobSwitching(){
 		fangsAdjust2SmartKnob.Activate();
 	}
 }
-// void updateSuperSaw(){
-// 	for( int i = 0; i < NUM_VOICES; i++ ) {
-// 		superSaws[ i ].SetFreq( midiFreqs[ i ] );
-// 		superSaws[ i ].SetShift( shiftValue );
-// 	}
-// }
-// void updateSubOsc(){
-// 	updateSubOscWave();
-// 	for( int i = 0; i < NUM_VOICES; i++ ) subOscs[ i ].SetFreq( midiFreqs[ i ] / ( subOscOctave + 1 ) );
-// }
-void updateDistortion(){
-	// FANGS: distortion.SetDrive( fmap( driveValue, 0.25, 0.9 ) );
-}
 void updateFilters(){
 	currentFilterMode = filterTypeSmartKnob.GetValue() * FILTER_MODES_COUNT;
 	float resValue = fmap( filterResSmartKnob.GetValue(), 0.f, 0.85 );
@@ -557,7 +532,6 @@ void initDsp(){
 	for( int i = 0; i < NUM_VOICES; i++ ){
 		superSaws[ i ].Init( SAMPLE_RATE );
 		subOscs[ i ].Init( SAMPLE_RATE );
-		// distortions[ i ].Init();  // SETS GAIN TO ZERO
 		filters1[ i ].Init( SAMPLE_RATE );
 		filters1[ i ].SetDrive( 0.f );
 		filters2[ i ].Init( SAMPLE_RATE );
@@ -629,10 +603,7 @@ int main(){
 		updateLfo();
 		updatePounces();
 		updateAmpEnvs();		
-		// updateSuperSaw();
-		// updateSubOsc();
 		updateSubOscWave();
-		// updateDistortion();
 		updateFilters();
 		updateFangs();
 		bool midiNotesOn = false;
