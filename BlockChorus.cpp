@@ -1,4 +1,4 @@
-#include "dsp.h"
+#include "daisysp.h"
 #include "BlockChorus.h"
 #include <math.h>
 
@@ -20,7 +20,7 @@ void BlockChorusEngine::Init(float sample_rate)
 }
 
 void BlockChorusEngine::Process( float *buf, size_t size ){
-    for( int i; i < size; i++ ){
+    for( size_t i = 0; i < size; i++ ){
         float lfo_sig = ProcessLfo();
         del_.SetDelay( lfo_sig + delay_ );
         float out = del_.Read();
@@ -92,22 +92,23 @@ void BlockChorus::Init(float sample_rate)
     sigl_ = sigr_ = 0.f;
 }
 
-float BlockChorus::Process(float in)
-{
-    sigl_ = 0.f;
-    sigr_ = 0.f;
+void BlockChorus::Process( float *buffer, size_t size ){
+    engines_[ 0 ].Process( buffer, size );
+    for( size_t i = 0; i < size; i++ ) buffer[ i ] *= gain_frac_;
+        
+    // sigl_ = 0.f;
+    // sigr_ = 0.f;
 
-    for(int i = 0; i < 2; i++)
-    {
-        float sig = engines_[i].Process(in);
-        sigl_ += (1.f - pan_[i]) * sig;
-        sigr_ += pan_[i] * sig;
-    }
+    // for( int i = 0; i < 2; i++ ){
+    //     float sig = engines_[i].Process(in);
+    //     sigl_ += (1.f - pan_[i]) * sig;
+    //     sigr_ += pan_[i] * sig;
+    // }
 
-    sigl_ *= gain_frac_;
-    sigr_ *= gain_frac_;
+    // sigl_ *= gain_frac_;
+    // sigr_ *= gain_frac_;
 
-    return sigl_;
+    // return sigl_;
 }
 
 float BlockChorus::GetLeft()

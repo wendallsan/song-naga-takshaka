@@ -1,6 +1,6 @@
 #pragma once
-#ifndef DSY_FLANGER_H
-#define DSY_FLANGER_H
+#ifndef DSY_SN_BLOCKFLANGER_H
+#define DSY_SN_BLOCKFLANGER_H
 #ifdef __cplusplus
 
 #include <stdint.h>
@@ -15,7 +15,7 @@ namespace daisysp
  * Generates a modulating phase shifted copy of a signal, and recombines
  * with the original to create a 'flanging' sound effect.
  */
-class Flanger
+class BlockFlanger
 {
   public:
     /** Initialize the modules
@@ -26,7 +26,7 @@ class Flanger
     /** Get the next sample
         \param in Sample to process
     */
-    float Process(float in);
+    void Process( float *buf, size_t size );
 
     /** How much of the signal to feedback into the delay line.
         \param feedback Works 0-1.

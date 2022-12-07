@@ -6,8 +6,8 @@
 #include "BlockSvf.h"
 #include "BlockComb.h"
 // #include "BlockReverbSc.h"
-// #include "BlockChorus.h"
-// #include "BlockFlanger.h"
+#include "BlockChorus.h"
+#include "BlockFlanger.h"
 #define ROOT_MIDI_NOTE 48
 #define SAMPLE_RATE 48000.f
 #define MAX_DELAY 96000
@@ -25,75 +25,18 @@
 #define PIN_CLAWS_IN daisy::seed::A6
 #define MODE_SWITCH_PIN 11
 
-/*
-FANGS TIME:
-disable the drive knob, slither knob, and slither drift mod knob
-so we can repopose them to:
-Fangs Time
-Fangs Amount
-Fangs Mix
-*/
-
 using namespace daisy;
 using namespace daisysp;
-enum AdcChannel {
-	ADC_MUX1,
-	ADC_MUX2,
-	ADC_SC_MOD,
-	ADC_FT,
-	ADC_FA,
-	ADC_FM,
-	ADC_CLAWS,
-	ADC_CHANNELS_COUNT
-};
-enum mux1Signals {
-	MUX1_DRIFT,
-	MUX1_SHIFT,
-	MUX1_GROWL,
-	MUX1_HOWL,
-	MUX1_RES,
-	MUX1_DRIVE,
-	MUX1_ATTACK,
-	MUX1_SUSTAIN
-}; 
-enum mux2Signals{
-	MUX2_DECAY,
-	MUX2_PD_MOD,
-	MUX2_PS_MOD,
-	MUX2_PH_MOD,
-	MUX2_SLITHER,
-	MUX2_SD_MOD,
-	MUX2_SS_MOD,
-	MUX2_SH_MOD
-};
-enum SubOscWaveforms {
-	SUBOSC_SINE_1,
-	SUBOSC_SINE_2,
-	SUBOSC_TRI_1,
-	SUBOSC_TRI_2,
-	SUBOSC_SQUARE_1,
-	SUBOSC_SQUARE_2,
-	SUBOSC_WAVEFORMS_COUNT
-};
-enum lfoWaveforms {
-	SINE,
-	TRI,
-	SAW,
-	RAMP,
-	SQUARE,
-	RANDOM,
-	LFO_WAVEFORMS_COUNT
-};
-enum FilterModes {
-	FILTER_MODE_LP,
-	FILTER_MODE_HP,
-	FILTER_MODE_BP,
-	FILTER_MODE_COMB,
-	FILTER_MODES_COUNT
-};
+
+enum AdcChannels { ADC_MUX1, ADC_MUX2, ADC_SC_MOD, ADC_FT, ADC_FA, ADC_FM, ADC_CLAWS, ADC_CHANNELS_COUNT };
+enum mux1Signals { MUX1_DRIFT, MUX1_SHIFT, MUX1_GROWL, MUX1_HOWL, MUX1_RES, MUX1_DRIVE, MUX1_ATTACK, MUX1_SUSTAIN }; 
+enum mux2Signals{ MUX2_DECAY, MUX2_PD_MOD, MUX2_PS_MOD, MUX2_PH_MOD, MUX2_SLITHER, MUX2_SD_MOD, MUX2_SS_MOD, MUX2_SH_MOD };
+enum SubOscWaveforms { SUBOSC_SINE_1, SUBOSC_SINE_2, SUBOSC_TRI_1, SUBOSC_TRI_2, SUBOSC_SQUARE_1, SUBOSC_SQUARE_2, SUBOSC_WAVEFORMS_COUNT };
+enum lfoWaveforms { SINE, TRI, SAW, RAMP, SQUARE, RANDOM, LFO_WAVEFORMS_COUNT };
+enum FilterModes { FILTER_MODE_LP, FILTER_MODE_HP, FILTER_MODE_BP, FILTER_MODE_COMB, FILTER_MODES_COUNT };
 enum EffectModes {
 	EFFECT_MODE_ECHO,
-	EFFECT_MODE_REVERB,
+	// EFFECT_MODE_REVERB, // TODO: IMPLEMENT REVERB IF WE HAVE ENOUGH CPU CYCLES FOR IT-- THIS IS NOT LIKELY
 	EFFECT_MODE_CHORUS,
 	EFFECT_MODE_FLANGER,
 	EFFECT_MODES_COUNT
@@ -113,14 +56,16 @@ float driftValue,
 	fangsMixValue,
 	pounceDriftModValue,
 	pounceShiftModValue,
-	pounceHowlModValue; 
+	pounceHowlModValue,
+	voicesAdjust = 1.f / sqrt( NUM_VOICES ),
+	effectAdjust = 1.f / sqrt( 2 ),
+	superSawMixMod; 
 int subOscOctave = 1,
 	fangsEffectType = EFFECT_MODE_ECHO,
 	midiNotes[ NUM_VOICES ] = { ROOT_MIDI_NOTE, ROOT_MIDI_NOTE, ROOT_MIDI_NOTE, ROOT_MIDI_NOTE },
 	currentFilterMode = FILTER_MODE_LP,
 	nextVoice = 0;
-bool debugMode = false,
-	operationMode = OP_MODE_NORMAL,
+bool operationMode = OP_MODE_NORMAL,
 	lastOperationMode = OP_MODE_NORMAL,
 	envGates[ NUM_VOICES ] = { false, false, false, false };
 DaisySeed hw;
@@ -153,15 +98,16 @@ Oscillator lfo;
 BlockSvf filters1[ NUM_VOICES ], filters2[ NUM_VOICES ];
 BlockComb combFilters[ NUM_VOICES ];
 Adsr pounces[ NUM_VOICES ], ampEnvs[ NUM_VOICES ];
-// TODO: CAN WE BLOCK THE DELAY LINE?
-// static DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS delayLine;
+static DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS delayLine;
 // static BlockReverbSc DSY_SDRAM_BSS reverb;
-// BlockChorus chorus;
-// Flanger flanger;
+BlockChorus chorus;
+BlockFlanger flanger;
 
 static Metro clock;
 const size_t sampleBlockSize = 16;
 
+// TODO: REPLACE SVF WITH MOOG LPF AND SEE IF WE CAN DERIVE THE OTHER FILTER MODES FROM IT
+// IF THAT DOESN'T WORK, TRY USING THE MOOD LPF FOR THE LPF FILTER AND SVF FOR BP AND HP
 void filterSignal( int i, float *buff, size_t size ){
 	if( currentFilterMode == FILTER_MODE_COMB ) combFilters[ i ].Process( buff, size );
 	else {
@@ -176,22 +122,48 @@ void filterSignal( int i, float *buff, size_t size ){
 				filters1[ i ].Process( buff, nullptr, nullptr, buff, size );
 				break;
 		}
-		if( filterPolesSmartKnob.GetValue() > 0.5 ) switch( currentFilterMode ){
-			case FILTER_MODE_LP:
-				filters2[ i ].Process( buff, buff, nullptr, nullptr, size );
-				break;
-			case FILTER_MODE_HP:
-				filters2[ i ].Process( buff, nullptr, buff, nullptr, size );
-				break;
-			case FILTER_MODE_BP:
-				filters2[ i ].Process( buff, nullptr, nullptr, buff, size );
-				break;
-		}
+		// TODO: POSSIBLY REMOVE THE 2ND FILTER?  IT DOESN'T SOUND THAT GOOD...
+		// if( filterPolesSmartKnob.GetValue() > 0.5 ) switch( currentFilterMode ){
+		// 	case FILTER_MODE_LP:
+		// 		filters2[ i ].Process( buff, buff, nullptr, nullptr, size );
+		// 		break;
+		// 	case FILTER_MODE_HP:
+		// 		filters2[ i ].Process( buff, nullptr, buff, nullptr, size );
+		// 		break;
+		// 	case FILTER_MODE_BP:
+		// 		filters2[ i ].Process( buff, nullptr, nullptr, buff, size );
+		// 		break;
+		// }
 	}
 }
+void handleChorusEffect( float *mixedSignalBuffer, size_t size ){
+	float chorusSignalBuffer[ size ];
+	for( size_t i = 0; i < size; i++ ) chorusSignalBuffer[ i ] = mixedSignalBuffer[ i ];
+	chorus.Process( chorusSignalBuffer, sampleBlockSize );
+	for( size_t i = 0; i < size; i++ ) 
+		mixedSignalBuffer[ i ] += ( ( chorusSignalBuffer[ i ] * fangsMixValue ) * effectAdjust );
+}
+void handleEchoEffect( float *mixedSignalBuffer, size_t size ){
+	float delaySignal;
+	for( size_t i = 0; i < size; i++ ){
+		delaySignal = delayLine.Read();
+		delayLine.Write(
+			mixedSignalBuffer[ i ] + 
+			( delaySignal * fangsAdjust1SmartKnob.GetValue() )
+		);
+		mixedSignalBuffer[ i ] = ( mixedSignalBuffer[ i ] * ( 1.0 - fangsMixValue ) ) + 
+			( delaySignal * fangsMixValue );
+	}
+}
+void handleFlangerEffect( float *mixedSignalBuffer, size_t size ){
+	float flangerSignalBuffer[ size ];
+	for( size_t i = 0; i < size; i++ ) flangerSignalBuffer[ i ] = mixedSignalBuffer[ i ];
+	flanger.Process( flangerSignalBuffer, sampleBlockSize );
+	for( size_t i = 0; i < size; i++ )
+		mixedSignalBuffer[ i ] += ( ( flangerSignalBuffer[ i ] * fangsMixValue ) * effectAdjust );
+}
 void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){	
-	// PROCESS LFO FIRST -- WE ONLY NEED TO CALL ONCE PER AUDIO CALLBACK
-	float lfoValue = lfo.Process();
+	float lfoValue = lfo.Process(); // PROCESS LFO FIRST -- WE ONLY NEED TO CALL ONCE PER AUDIO CALLBACK
 	// SET INITIAL MOD VALUES FOR CONTROLS AFFECTED BY THE LFO
 	float modDriftValue = driftValue +
 		lfoValue * ( ( lfoValue * slitherDriftModValue ) - ( slitherDriftModValue / 2.f ) );
@@ -201,41 +173,20 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		lfoValue * ( ( lfoValue * slitherHowlModValue ) - ( slitherHowlModValue / 2.f ) );
 	float modClawsValue = ampSmartKnob.GetValue() + 
 		lfoValue * ( ( lfoValue * slitherClawsModValue ) - ( slitherClawsModValue / 2.f ) );
-		
-	// SET MIX TO 1.0 - 0.8 DEPENDING ON THE SUB KNOB
-	float superSawMixMod = fmap( 1.0 - subMixSmartKnob.GetValue(), 0.8, 1.0 );
-	/*
-		float filterFreqs[ size ];
-		fliters[ i ].
-		
-		//  = fmap( cutoffMod, 1.0, fclamp( midiFreqs[ j ] * 16.0, 20.f, 20000.f ) );
-		filters1[ j ].SetFreq( filterFreq );
-		filters2[ j ].SetFreq( filterFreq );
-		combFilters[ j ].SetFreq( fclamp( filterFreq, 20.f, 10000.f ) );
-	*/
-
-	if( debugMode ){
-		uint8_t tic = clock.Process();
-        if( tic ){
-			for( int i = 0; i < NUM_VOICES; i++ ) envGates[ i ] = false;
-			// RANDOMLY TRIGGER A GATE ENV
-			envGates[ rand() % NUM_VOICES ] = true;
-		}
-	}
-	float output[ size ];
-	for( size_t i = 0; i < size; i++ ) output[ i ] = 0.f;
+	// DECLARE OUTPUT BUFFER AND ZERO IT OUT
+	float output[ size ]; for( size_t i = 0; i < size; i++ ) output[ i ] = 0.f;
 	for( int currentVoice = 0; currentVoice < NUM_VOICES; currentVoice++ ){
-		// GET THE POUNCE ENV VALUE
+		// GET THE ENV VALUES
 		float pounceValue = pounces[ currentVoice ].Process( envGates[ currentVoice ] );
+		float ampEnvValue = ampEnvs[ currentVoice ].Process( envGates[ currentVoice ] );
 		// APPLY POUNCE ENV TO MODDABLE VALUES
 		float thisModDriftValue = modDriftValue + ( pounceValue * pounceDriftModValue );
 		float thisModShiftValue = modShiftValue + ( pounceValue * pounceShiftModValue );
 		float thisModCutoffValue = modCutoffValue + ( pounceValue * pounceHowlModValue );
-		// GET THE AMPENV VALUE
-		float ampEnvValue = ampEnvs[ currentVoice ].Process( envGates[ currentVoice ] );
 
 		superSaws[ currentVoice ].SetDrift( fclamp( thisModDriftValue, 0.f, 0.999 ) );
 		superSaws[ currentVoice ].SetShift( fclamp( thisModShiftValue, 0.f, 0.999 ) );
+		// TODO: THISMODCUTOFFVALUE DOES NOT TAKE MIDI NOTE INTO CONSIDERATION
 		float cutoffFreq = fclamp(
 			exp2f( thisModCutoffValue * 14.288 ),
 			1.f,
@@ -265,15 +216,22 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		for( size_t i = 0; i < size; i++ ) // HANDLE DRIVE LEVEL INTO THE FILTER
 			mixedSignalBuffer[ i ] = SoftClip( mixedSignalBuffer[ i ] * ( 1.f + fmap( driveValue, 0.f, 8.f ) ) );
 		filterSignal( currentVoice, mixedSignalBuffer, size );
-		// TODO: IMPLEMENT FANGS EFFECTS SECTION
-		// fonepole( fangsTimeCurrentValue, fangsTimeSmartKnob.GetValue(), 0.002f );
-		// if( fangsEffectType == EFFECT_MODE_ECHO ){
-		// 	delayLine.SetDelay( fangsTimeCurrentValue * MAX_DELAY );
-		// 	float delaySignal = delayLine.Read(); // READ FROM THE DELAY LINE
-		// 	delayLine.Write(  // WRITE TO THE DELAY LINE
-		// 		( finalSignal * ( 1.0 - fangsAmount1SmartKnob.GetValue() ) ) + ( delaySignal * fangsAmount1SmartKnob.GetValue() )
-		// 	);
-		// 	finalSignal = ( finalSignal * (1.0 - fangsMixValue ) ) + ( delaySignal * fangsMixValue );
+		
+		// TODO IMPLEMENT SAMPLE-BUFFFER-READY VERSIONS OF THE FANGS EFFECTS SECTION
+		
+		fonepole( fangsTimeCurrentValue, fangsTimeSmartKnob.GetValue(), 0.002f );
+		switch( fangsEffectType ){
+			case EFFECT_MODE_ECHO:
+				handleEchoEffect( mixedSignalBuffer, size );
+				break;
+			case EFFECT_MODE_CHORUS:
+				handleChorusEffect( mixedSignalBuffer, size );
+				break;
+			case EFFECT_MODE_FLANGER:
+				handleFlangerEffect( mixedSignalBuffer, size );
+				break;
+		}
+
 		// } else if( fangsEffectType == EFFECT_MODE_REVERB ) {			
 		// float reverbSignalBuffer[ size ];
 		// for( size_t i  = 0; i < size; size++ ) reverbSignalBuffer[ i ] = mixedSignalBuffer[ i ];
@@ -281,19 +239,9 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		// for( size_t i = 0; i < size; i++ )
 		// 	mixedSignalBuffer[ i ] = ( mixedSignalBuffer[ i ] * ( 1.f - fangsMixValue ) ) + 
 		// 		( reverbSignalBuffer[ i ] * fangsMixValue );
-		// } else if( fangsEffectType == EFFECT_MODE_CHORUS ){
-		// float chorusSignalBuffer[ size ];
-		// for( size_t i  = 0; i < size; size++ ) chorusSignalBuffer[ i ] = mixedSignalBuffer[ i ];
-		// chorus.Process( chorusSignalBuffer, sampleBlockSize );
-		// for( size_t i  = 0; i < size; size++ ) 
-		// 	mixedSignalBuffer[ i ] = ( mixedSignalBuffer[ i ] * ( 1.f - fangsMixValue ) ) + 
-		// 		( chorusSignalBuffer[ i ] * fangsMixValue );			
-		// } else if( fangsEffectType == EFFECT_MODE_FLANGER){
-		// 	float flangerSignal = flanger.Process( finalSignal );
-		// 	finalSignal = ( finalSignal * ( 1.0 - fangsMixValue ) ) + ( flangerSignal * fangsMixValue );
-		// }
+				
 		for( size_t currentSample = 0; currentSample < size; currentSample++ )
-			output[ currentSample ] += SoftClip( mixedSignalBuffer[ currentSample ] * ampModValue );
+			output[ currentSample ] += SoftClip( mixedSignalBuffer[ currentSample ] * ampModValue * voicesAdjust );
 	}
 	for( size_t i = 0; i < size; i++ ) out[ 0 ][ i ] = out [ 1 ][ i ] = output[ i ];
 }
@@ -306,14 +254,9 @@ void handleMidi(){
 			nextVoice = ( nextVoice + 1 ) % NUM_VOICES;
 			midiNotes[ nextVoice ] = noteMessage.note;
 			envGates[ nextVoice ] = true;
-		} else if( midiEvent.type == NoteOff ) {
-			for( int i = 0; i < NUM_VOICES; i++ ){
-				if( midiNotes[ i ] == noteMessage.note ){
-					// midiNotes[ i ] = 0;
-					envGates[ i ] = false;
-				}
-			}
-		}
+		} else if( midiEvent.type == NoteOff )
+			for( int i = 0; i < NUM_VOICES; i++ )
+				if( midiNotes[ i ] == noteMessage.note ) envGates[ i ] = false;
 	}
 }
 void handleKnobs(){
@@ -358,6 +301,8 @@ void handleKnobs(){
 	float clawsValue = 1.0 - hw.adc.GetFloat( ADC_CLAWS );
 	ampSmartKnob.Update( clawsValue );
 	ampEnvModSmartKnob.Update( clawsValue );
+	// SET MIX TO 1.0 - 0.8 DEPENDING ON THE SUB KNOB
+	superSawMixMod = fmap( 1.0 - subMixSmartKnob.GetValue(), 0.8, 1.0 );
 }
 void updateLfoWave(){
 	int lfoWave = lfoTypeSmartKnob.GetValue() * LFO_WAVEFORMS_COUNT ;  // int range 0 - 2
@@ -545,51 +490,41 @@ void initDsp(){
 	}
 	lfo.Init( SAMPLE_RATE / 32.f );
 	lfo.SetWaveform( lfo.WAVE_SIN );
-	// delayLine.Init();
+	delayLine.Init();
 	// reverb.Init( SAMPLE_RATE );
-	// chorus.Init( SAMPLE_RATE );
-	// flanger.Init( SAMPLE_RATE );
+	chorus.Init( SAMPLE_RATE );
+	flanger.Init( SAMPLE_RATE );
 }
 void updateLfo(){
 	updateLfoWave();
-	lfo.SetFreq( fmap( lfoFrequencySmartKnob.GetValue(), 0.5f, 20.f ) );
+	lfo.SetFreq( fmap( lfoFrequencySmartKnob.GetValue(), 0.02f, 20.f ) );
 }
 void updateFangs(){
-	// fangsEffectType = fangsEffectTypeSmartKnob.GetValue() * EFFECT_MODES_COUNT;
+	fangsEffectType = fangsEffectTypeSmartKnob.GetValue() * EFFECT_MODES_COUNT;
 	// reverb.SetFeedback( fangsAmount1SmartKnob.GetValue() );
 	// reverb.SetLpFreq( fmap( fangsTimeSmartKnob.GetValue(), 70.f, 18000.f ) );
-	// chorus.SetDelay( fangsTimeSmartKnob.GetValue(), fangsTimeSmartKnob.GetValue() ); // TODO: 2 ARGS R 4 STEREO OUTS
-	// chorus.SetLfoDepth( fangsAmount1SmartKnob.GetValue() );
-	// chorus.SetLfoFreq( fmap( fangsAmount2SmartKnob.GetValue(), 0.1f, 5.f ), 0.2f ); // TODO: 2 ARGS R 4 STEREO OUTS
-	// flanger.SetLfoFreq( fmap( fangsTimeSmartKnob.GetValue(), 0.1f, 5.f ) );
-    // flanger.SetFeedback( fangsAmount1SmartKnob.GetValue() );
-	// flanger.SetLfoDepth( fmap( fangsAmount2SmartKnob.GetValue(), 0.1f, 5.f ) );
+	chorus.SetDelay( fangsTimeSmartKnob.GetValue(), fangsTimeSmartKnob.GetValue() ); // TODO: 2 ARGS R 4 STEREO OUTS
+	chorus.SetLfoDepth( fangsAdjust1SmartKnob.GetValue() );
+	chorus.SetLfoFreq( fmap( fangsAdjust2SmartKnob.GetValue(), 0.1f, 5.f ), 0.2f ); // TODO: 2 ARGS R 4 STEREO OUTS
+	flanger.SetLfoFreq( fmap( fangsTimeSmartKnob.GetValue(), 0.1f, 5.f ) );
+    flanger.SetFeedback( fangsAdjust1SmartKnob.GetValue() );
+	flanger.SetLfoDepth( fmap( fangsAdjust2SmartKnob.GetValue(), 0.1f, 5.f ) );
 }
 int main(){
 	hw.Init();
 	hw.SetAudioBlockSize( sampleBlockSize ); // number of samples handled per callback
 	hw.SetAudioSampleRate( SaiHandle::Config::SampleRate::SAI_48KHZ );
-	if( !debugMode ){
-		MidiUsbHandler::Config midiConfig;
-		midiConfig.transport_config.periph = MidiUsbTransport::Config::INTERNAL;
-		midi.Init( midiConfig );
-	} else {
-		hw.StartLog();
-		clock.Init( 1.f / sampleBlockSize, SAMPLE_RATE );
-	}
+	MidiUsbHandler::Config midiConfig;
+	midiConfig.transport_config.periph = MidiUsbTransport::Config::INTERNAL;
+	midi.Init( midiConfig );
 	initSmartKnobs();
 	initDsp();
 	initAdc();
 	modeSwitch.Init( hw.GetPin( MODE_SWITCH_PIN ), 100 );
-	hw.StartAudio( AudioCallback ); 
-	int debugCount = 0;
+	hw.StartAudio( AudioCallback );
 	while( true ){
-		if( !debugMode ) handleMidi();
-		else{
-			int sevenChord[ 4 ] = { 0, 4, 6, 10 };
-			for( int i = 0; i < NUM_VOICES; i++ ) midiNotes[ i ] = ROOT_MIDI_NOTE + sevenChord[ i ];
-		}
-		for( int i = 0; i < NUM_VOICES; i++ ) {
+		handleMidi();
+		for( int i = 0; i < NUM_VOICES; i++ ){
 			midiFreqs[ i ] = mtof( midiNotes[ i ] );
  			superSaws[ i ].SetFreq( midiFreqs[ i ] );
 			subOscs[ i ].SetFreq( midiFreqs[ i ] / ( subOscOctave + 1 ) );
@@ -609,13 +544,6 @@ int main(){
 		bool midiNotesOn = false;
 		for( int i = 0; i < NUM_VOICES; i++ ) if( envGates[ i ] ) midiNotesOn = true;
 		hw.SetLed( midiNotesOn );
-		if( debugMode ){
-			debugCount++;
-			if( debugCount >= 500 ){
-
-				debugCount = 0;
-			}
-		}
 		System::Delay( 1 );
 	}
 }

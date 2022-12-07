@@ -96,7 +96,7 @@ class BlockChorus
     /** Get the net floating point sample. Defaults to left channel.
         \param in Sample to process
     */
-    float Process( float *buf, size_t size );
+    void Process( float *buf, size_t size );
 
     /** Get the left channel's last sample */
     float GetLeft();
