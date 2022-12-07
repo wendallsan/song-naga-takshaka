@@ -5,7 +5,7 @@
 #include "BlockOscillator.h"
 #include "BlockSvf.h"
 #include "BlockComb.h"
-// #include "BlockReverbSc.h"
+#include "BlockReverbSc.h"
 #include "BlockChorus.h"
 #include "BlockFlanger.h"
 #define ROOT_MIDI_NOTE 48
@@ -36,7 +36,7 @@ enum lfoWaveforms { SINE, TRI, SAW, RAMP, SQUARE, RANDOM, LFO_WAVEFORMS_COUNT };
 enum FilterModes { FILTER_MODE_LP, FILTER_MODE_HP, FILTER_MODE_BP, FILTER_MODE_COMB, FILTER_MODES_COUNT };
 enum EffectModes {
 	EFFECT_MODE_ECHO,
-	// EFFECT_MODE_REVERB, // TODO: IMPLEMENT REVERB IF WE HAVE ENOUGH CPU CYCLES FOR IT-- THIS IS NOT LIKELY
+	EFFECT_MODE_REVERB,
 	EFFECT_MODE_CHORUS,
 	EFFECT_MODE_FLANGER,
 	EFFECT_MODES_COUNT
@@ -95,15 +95,13 @@ SmartKnob subMixSmartKnob,
 BlockSuperSawOsc superSaws[ NUM_VOICES ];
 BlockOscillator subOscs[ NUM_VOICES ];
 Oscillator lfo;
-BlockSvf filters1[ NUM_VOICES ], filters2[ NUM_VOICES ];
+BlockSvf filters[ NUM_VOICES ];
 BlockComb combFilters[ NUM_VOICES ];
 Adsr pounces[ NUM_VOICES ], ampEnvs[ NUM_VOICES ];
 static DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS delayLine;
-// static BlockReverbSc DSY_SDRAM_BSS reverb;
+static BlockReverbSc DSY_SDRAM_BSS reverb;
 BlockChorus chorus;
 BlockFlanger flanger;
-
-static Metro clock;
 const size_t sampleBlockSize = 16;
 
 // TODO: REPLACE SVF WITH MOOG LPF AND SEE IF WE CAN DERIVE THE OTHER FILTER MODES FROM IT
@@ -113,57 +111,49 @@ void filterSignal( int i, float *buff, size_t size ){
 	else {
 		switch( currentFilterMode ){
 			case FILTER_MODE_LP:
-				filters1[ i ].Process( buff, buff, nullptr, nullptr, size );
+				filters[ i ].Process( buff, buff, nullptr, nullptr, size );
 				break;
 			case FILTER_MODE_HP:			
-				filters1[ i ].Process( buff, nullptr, buff, nullptr, size );
+				filters[ i ].Process( buff, nullptr, buff, nullptr, size );
 				break;
 			case FILTER_MODE_BP:			
-				filters1[ i ].Process( buff, nullptr, nullptr, buff, size );
+				filters[ i ].Process( buff, nullptr, nullptr, buff, size );
 				break;
 		}
-		// TODO: POSSIBLY REMOVE THE 2ND FILTER?  IT DOESN'T SOUND THAT GOOD...
-		// if( filterPolesSmartKnob.GetValue() > 0.5 ) switch( currentFilterMode ){
-		// 	case FILTER_MODE_LP:
-		// 		filters2[ i ].Process( buff, buff, nullptr, nullptr, size );
-		// 		break;
-		// 	case FILTER_MODE_HP:
-		// 		filters2[ i ].Process( buff, nullptr, buff, nullptr, size );
-		// 		break;
-		// 	case FILTER_MODE_BP:
-		// 		filters2[ i ].Process( buff, nullptr, nullptr, buff, size );
-		// 		break;
-		// }
 	}
 }
-void handleChorusEffect( float *mixedSignalBuffer, size_t size ){
+void handleChorusEffect( float *buffer, size_t size ){
 	float chorusSignalBuffer[ size ];
-	for( size_t i = 0; i < size; i++ ) chorusSignalBuffer[ i ] = mixedSignalBuffer[ i ];
+	for( size_t i = 0; i < size; i++ ) chorusSignalBuffer[ i ] = buffer[ i ];
 	chorus.Process( chorusSignalBuffer, sampleBlockSize );
 	for( size_t i = 0; i < size; i++ ) 
-		mixedSignalBuffer[ i ] += ( ( chorusSignalBuffer[ i ] * fangsMixValue ) * effectAdjust );
+		buffer[ i ] += ( ( chorusSignalBuffer[ i ] * fangsMixValue ) * effectAdjust );
 }
-void handleEchoEffect( float *mixedSignalBuffer, size_t size ){
+void handleEchoEffect( float *buffer, size_t size ){
 	float delaySignal;
 	for( size_t i = 0; i < size; i++ ){
 		delaySignal = delayLine.Read();
-		delayLine.Write(
-			mixedSignalBuffer[ i ] + 
-			( delaySignal * fangsAdjust1SmartKnob.GetValue() )
-		);
-		mixedSignalBuffer[ i ] = ( mixedSignalBuffer[ i ] * ( 1.0 - fangsMixValue ) ) + 
+		delayLine.Write( buffer[ i ] + ( delaySignal * fangsAdjust1SmartKnob.GetValue() ) );
+		buffer[ i ] = ( buffer[ i ] * ( 1.0 - fangsMixValue ) ) + 
 			( delaySignal * fangsMixValue );
 	}
 }
-void handleFlangerEffect( float *mixedSignalBuffer, size_t size ){
+void handleFlangerEffect( float *buffer, size_t size ){
 	float flangerSignalBuffer[ size ];
-	for( size_t i = 0; i < size; i++ ) flangerSignalBuffer[ i ] = mixedSignalBuffer[ i ];
+	for( size_t i = 0; i < size; i++ ) flangerSignalBuffer[ i ] = buffer[ i ];
 	flanger.Process( flangerSignalBuffer, sampleBlockSize );
 	for( size_t i = 0; i < size; i++ )
-		mixedSignalBuffer[ i ] += ( ( flangerSignalBuffer[ i ] * fangsMixValue ) * effectAdjust );
+		buffer[ i ] += ( flangerSignalBuffer[ i ] * fangsMixValue ) * effectAdjust;
+}
+void handleReverbEffect( float *buffer, size_t size ){		
+	float reverbSignalBuffer[ size ];
+	for( size_t i  = 0; i < size; size++ ) reverbSignalBuffer[ i ] = buffer[ i ];
+	reverb.Process( reverbSignalBuffer, size );
+	for( size_t i = 0; i < size; i++ )
+		buffer[ i ] += ( reverbSignalBuffer[ i ] * fangsMixValue ) * effectAdjust;
 }
 void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){	
-	float lfoValue = lfo.Process(); // PROCESS LFO FIRST -- WE ONLY NEED TO CALL ONCE PER AUDIO CALLBACK
+	float lfoValue = lfo.Process(); // PROCESS LFO FIRST
 	// SET INITIAL MOD VALUES FOR CONTROLS AFFECTED BY THE LFO
 	float modDriftValue = driftValue +
 		lfoValue * ( ( lfoValue * slitherDriftModValue ) - ( slitherDriftModValue / 2.f ) );
@@ -183,7 +173,6 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		float thisModDriftValue = modDriftValue + ( pounceValue * pounceDriftModValue );
 		float thisModShiftValue = modShiftValue + ( pounceValue * pounceShiftModValue );
 		float thisModCutoffValue = modCutoffValue + ( pounceValue * pounceHowlModValue );
-
 		superSaws[ currentVoice ].SetDrift( fclamp( thisModDriftValue, 0.f, 0.999 ) );
 		superSaws[ currentVoice ].SetShift( fclamp( thisModShiftValue, 0.f, 0.999 ) );
 		// TODO: THISMODCUTOFFVALUE DOES NOT TAKE MIDI NOTE INTO CONSIDERATION
@@ -192,22 +181,18 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 			1.f,
 			20000.f
 		);
-		filters1[ currentVoice ].SetFreq( cutoffFreq );
-		filters2[ currentVoice ].SetFreq( cutoffFreq );
+		filters[ currentVoice ].SetFreq( cutoffFreq );;
 		float ampModValue = fclamp(
 				modClawsValue + ( ampEnvValue * ampEnvModSmartKnob.GetValue() ),
 				0.f,
 				1.f 
-			) * ( 1.f / sqrt( NUM_VOICES ) ); // ADJUST VOLUME BY NUMBER OF VOICES
-		
+			) * ( 1.f / sqrt( NUM_VOICES ) ); // ADJUST VOLUME BY NUMBER OF VOICES		
 		// ONCE ALL THE MODS ARE ASSIGNED, DEAL WITH THE AUDIO BUFFERS
 		float mixedSignalBuffer[ size ];
 		superSaws[ currentVoice ].Process( mixedSignalBuffer, size );
-
 		// GET SUBOSC SIGNALS AND PUT THEM IN THE SUBOSC BUFFER
 		float subSampleBuffer[ size ];
-		subOscs[ currentVoice ].Process( subSampleBuffer, size );	
-
+		subOscs[ currentVoice ].Process( subSampleBuffer, size );
 		// MIX SUBOSC IN TO THE MIXED SIGNAL BUFFER		
 		for( size_t currentSample = 0; currentSample < size; currentSample++ ) {
 			mixedSignalBuffer[ currentSample ] = mixedSignalBuffer[ currentSample ] * superSawMixMod + 
@@ -216,9 +201,6 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		for( size_t i = 0; i < size; i++ ) // HANDLE DRIVE LEVEL INTO THE FILTER
 			mixedSignalBuffer[ i ] = SoftClip( mixedSignalBuffer[ i ] * ( 1.f + fmap( driveValue, 0.f, 8.f ) ) );
 		filterSignal( currentVoice, mixedSignalBuffer, size );
-		
-		// TODO IMPLEMENT SAMPLE-BUFFFER-READY VERSIONS OF THE FANGS EFFECTS SECTION
-		
 		fonepole( fangsTimeCurrentValue, fangsTimeSmartKnob.GetValue(), 0.002f );
 		switch( fangsEffectType ){
 			case EFFECT_MODE_ECHO:
@@ -230,16 +212,10 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 			case EFFECT_MODE_FLANGER:
 				handleFlangerEffect( mixedSignalBuffer, size );
 				break;
-		}
-
-		// } else if( fangsEffectType == EFFECT_MODE_REVERB ) {			
-		// float reverbSignalBuffer[ size ];
-		// for( size_t i  = 0; i < size; size++ ) reverbSignalBuffer[ i ] = mixedSignalBuffer[ i ];
-		// reverb.Process( reverbSignalBuffer, size );
-		// for( size_t i = 0; i < size; i++ )
-		// 	mixedSignalBuffer[ i ] = ( mixedSignalBuffer[ i ] * ( 1.f - fangsMixValue ) ) + 
-		// 		( reverbSignalBuffer[ i ] * fangsMixValue );
-				
+			case EFFECT_MODE_REVERB:
+				handleReverbEffect( mixedSignalBuffer, size );
+				break;
+		}				
 		for( size_t currentSample = 0; currentSample < size; currentSample++ )
 			output[ currentSample ] += SoftClip( mixedSignalBuffer[ currentSample ] * ampModValue * voicesAdjust );
 	}
@@ -301,7 +277,6 @@ void handleKnobs(){
 	float clawsValue = 1.0 - hw.adc.GetFloat( ADC_CLAWS );
 	ampSmartKnob.Update( clawsValue );
 	ampEnvModSmartKnob.Update( clawsValue );
-	// SET MIX TO 1.0 - 0.8 DEPENDING ON THE SUB KNOB
 	superSawMixMod = fmap( 1.0 - subMixSmartKnob.GetValue(), 0.8, 1.0 );
 }
 void updateLfoWave(){
@@ -323,7 +298,7 @@ void updateLfoWave(){
 			lfo.SetWaveform( lfo.WAVE_SQUARE );
 			break;
 		case 5:
-			// TODO: IMPLEMENT RANDOM
+			// TODO IMPLEMENT RANDOM
 			lfo.SetWaveform( lfo.WAVE_SIN );
 			break;
 	}
@@ -430,8 +405,7 @@ void updateFilters(){
 	currentFilterMode = filterTypeSmartKnob.GetValue() * FILTER_MODES_COUNT;
 	float resValue = fmap( filterResSmartKnob.GetValue(), 0.f, 0.85 );
 	for( int i = 0; i < NUM_VOICES; i++ ){
-		filters1[ i ].SetRes( resValue );
-		filters2[ i ].SetRes( resValue );
+		filters[ i ].SetRes( resValue );
 		combFilters[ i ].SetRevTime( fmap( filterResSmartKnob.GetValue(), 0.f, 1.0 ) );
 	}
 }
@@ -477,10 +451,8 @@ void initDsp(){
 	for( int i = 0; i < NUM_VOICES; i++ ){
 		superSaws[ i ].Init( SAMPLE_RATE );
 		subOscs[ i ].Init( SAMPLE_RATE );
-		filters1[ i ].Init( SAMPLE_RATE );
-		filters1[ i ].SetDrive( 0.f );
-		filters2[ i ].Init( SAMPLE_RATE );
-		filters2[ i ].SetDrive( 0.f );
+		filters[ i ].Init( SAMPLE_RATE );
+		filters[ i ].SetDrive( 0.f );
 		int combfilterBufferLength = sizeof( combFilterBuffers[ i ] ) / sizeof( combFilterBuffers[ i ][ 0 ] );
 		for( int j = 0; j < combfilterBufferLength; j++ ) combFilterBuffers[ i ][ j ] = 0.f;
 		combFilters[ i ].Init( SAMPLE_RATE, combFilterBuffers[ i ], combfilterBufferLength );
@@ -541,9 +513,6 @@ int main(){
 		updateSubOscWave();
 		updateFilters();
 		updateFangs();
-		bool midiNotesOn = false;
-		for( int i = 0; i < NUM_VOICES; i++ ) if( envGates[ i ] ) midiNotesOn = true;
-		hw.SetLed( midiNotesOn );
 		System::Delay( 1 );
 	}
 }
