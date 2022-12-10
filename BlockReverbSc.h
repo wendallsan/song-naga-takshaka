@@ -20,7 +20,7 @@ typedef struct
     int    rand_line_cnt;     /**< number of random lines */
     float  filter_state;      /**< state of filter */
     float *buf;               /**< buffer ptr */
-} ReverbScDl;
+} BlockReverbScDl;
 
 /** Stereo Reverb
 
@@ -59,15 +59,15 @@ class BlockReverbSc
     inline void SetLpFreq(const float &freq) { lpfreq_ = freq; }
 
   private:
-    void       NextRandomLineseg(ReverbScDl *lp, int n);
-    int        InitDelayLine(ReverbScDl *lp, int n);
+    void       NextRandomLineseg( BlockReverbScDl *lp, int n);
+    int        InitDelayLine( BlockReverbScDl *lp, int n);
     float      feedback_, lpfreq_;
     float      i_sample_rate_, i_pitch_mod_, i_skip_init_;
     float      sample_rate_;
     float      damp_fact_;
     float      prv_lpfreq_;
     int        init_done_;
-    ReverbScDl delay_lines_[8];
+    BlockReverbScDl delay_lines_[8];
     float      aux_[DSY_REVERBSC_MAX_SIZE];
 };
 

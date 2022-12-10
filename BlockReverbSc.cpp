@@ -83,7 +83,7 @@ static int DelayLineBytesAlloc(float sr, float i_pitch_mod, int n)
     return n_bytes;
 }
 
-void BlockReverbSc::NextRandomLineseg(ReverbScDl *lp, int n)
+void BlockReverbSc::NextRandomLineseg( BlockReverbScDl *lp, int n)
 {
     float prv_del, nxt_del, phs_inc_val;
 
@@ -110,7 +110,7 @@ void BlockReverbSc::NextRandomLineseg(ReverbScDl *lp, int n)
     lp->read_pos_frac_inc = (int)(phs_inc_val * DELAYPOS_SCALE + 0.5);
 }
 
-int BlockReverbSc::InitDelayLine(ReverbScDl *lp, int n)
+int BlockReverbSc::InitDelayLine( BlockReverbScDl *lp, int n)
 {
     float read_pos;
     /* int     i; */
@@ -141,11 +141,11 @@ int BlockReverbSc::InitDelayLine(ReverbScDl *lp, int n)
 
 void BlockReverbSc::Process( float *buf, size_t size ){
 
-    for( int i = 0; i < size; i++ ){
+    for( size_t i = 0; i < size; i++ ){
 
         float       a_in_l, a_in_r, a_out_l, a_out_r;
         float       vm1, v0, v1, v2, am1, a0, a1, a2, frac;
-        ReverbScDl *lp;
+        BlockReverbScDl *lp;
         int         read_pos;
         uint32_t    n;
         int         buffer_size; 
