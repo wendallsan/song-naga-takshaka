@@ -3,7 +3,7 @@
 #include "SmartKnob.h"
 #include "BlockSuperSawOsc.h"
 #include "BlockOscillator.h"
-#include "BlockSvf.h"
+#include "BlockMoogLadder.h"
 #include "BlockComb.h"
 #include "BlockReverbSc.h"
 #include "BlockChorus.h"
@@ -33,7 +33,7 @@ enum mux1Signals { MUX1_DRIFT, MUX1_SHIFT, MUX1_GROWL, MUX1_HOWL, MUX1_RES, MUX1
 enum mux2Signals{ MUX2_DECAY, MUX2_PD_MOD, MUX2_PS_MOD, MUX2_PH_MOD, MUX2_SLITHER, MUX2_SD_MOD, MUX2_SS_MOD, MUX2_SH_MOD };
 enum SubOscWaveforms { SUBOSC_SINE_1, SUBOSC_SINE_2, SUBOSC_TRI_1, SUBOSC_TRI_2, SUBOSC_SQUARE_1, SUBOSC_SQUARE_2, SUBOSC_WAVEFORMS_COUNT };
 enum lfoWaveforms { SINE, TRI, SAW, RAMP, SQUARE, RANDOM, LFO_WAVEFORMS_COUNT };
-enum FilterModes { FILTER_MODE_LP, FILTER_MODE_HP, FILTER_MODE_BP, FILTER_MODE_COMB, FILTER_MODES_COUNT };
+enum FilterModes { FILTER_MODE_LP, FILTER_MODE_COMB, FILTER_MODES_COUNT };
 enum EffectModes {
 	EFFECT_MODE_ECHO,
 	EFFECT_MODE_REVERB,
@@ -95,7 +95,7 @@ SmartKnob subMixSmartKnob,
 BlockSuperSawOsc superSaws[ NUM_VOICES ];
 BlockOscillator subOscs[ NUM_VOICES ];
 Oscillator lfo;
-BlockSvf filters[ NUM_VOICES ];
+BlockMoogLadder filters[ NUM_VOICES ];
 BlockComb combFilters[ NUM_VOICES ];
 Adsr pounces[ NUM_VOICES ], ampEnvs[ NUM_VOICES ];
 static DelayLine<float, MAX_DELAY> DSY_SDRAM_BSS delayLine;
@@ -108,19 +108,7 @@ const size_t sampleBlockSize = 16;
 // IF THAT DOESN'T WORK, TRY USING THE MOOD LPF FOR THE LPF FILTER AND SVF FOR BP AND HP
 void filterSignal( int i, float *buff, size_t size ){
 	if( currentFilterMode == FILTER_MODE_COMB ) combFilters[ i ].Process( buff, size );
-	else {
-		switch( currentFilterMode ){
-			case FILTER_MODE_LP:
-				filters[ i ].Process( buff, buff, nullptr, nullptr, size );
-				break;
-			case FILTER_MODE_HP:			
-				filters[ i ].Process( buff, nullptr, buff, nullptr, size );
-				break;
-			case FILTER_MODE_BP:			
-				filters[ i ].Process( buff, nullptr, nullptr, buff, size );
-				break;
-		}
-	}
+	else filters[ i ].Process( buff, size );
 }
 void handleChorusEffect( float *buffer, size_t size ){
 	float chorusSignalBuffer[ size ];
@@ -405,6 +393,7 @@ void handleSmartKnobSwitching(){
 }
 void updateFilters(){
 	currentFilterMode = filterTypeSmartKnob.GetValue() * FILTER_MODES_COUNT;
+	// TODO: DO WE WANT RES TO GO TO 100?
 	float resValue = fmap( filterResSmartKnob.GetValue(), 0.f, 0.85 );
 	for( int i = 0; i < NUM_VOICES; i++ ){
 		filters[ i ].SetRes( resValue );
@@ -454,7 +443,6 @@ void initDsp(){
 		superSaws[ i ].Init( SAMPLE_RATE );
 		subOscs[ i ].Init( SAMPLE_RATE );
 		filters[ i ].Init( SAMPLE_RATE );
-		filters[ i ].SetDrive( 0.f );
 		int combfilterBufferLength = sizeof( combFilterBuffers[ i ] ) / sizeof( combFilterBuffers[ i ][ 0 ] );
 		for( int j = 0; j < combfilterBufferLength; j++ ) combFilterBuffers[ i ][ j ] = 0.f;
 		combFilters[ i ].Init( SAMPLE_RATE, combFilterBuffers[ i ], combfilterBufferLength );
