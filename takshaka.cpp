@@ -5,6 +5,7 @@
 #include "BlockOscillator.h"
 #include "BlockMoogLadder.h"
 #include "BlockComb.h"
+
 #define ROOT_MIDI_NOTE 48
 #define SAMPLE_RATE 48000.f
 #define MAX_DELAY 96000
@@ -40,12 +41,11 @@ float combFilterBuffers[ NUM_VOICES ][ 9600 ],
 	shiftValue,
 	driveValue,
 	slitherValue,
+	resValue,
 	slitherDriftModValue,
 	slitherShiftModValue,
 	slitherHowlModValue,
 	slitherClawsModValue,
-	fangsTimeCurrentValue,
-	fangsMixValue,
 	pounceDriftModValue,
 	pounceShiftModValue,
 	pounceHowlModValue,
@@ -70,8 +70,8 @@ SmartKnob subMixSmartKnob,
 	subTypeSmartKnob,
 	filterCutoffSmartKnob,
 	filterTypeSmartKnob,
-	filterResSmartKnob,
 	clawsSmartKnob,
+	fangsModSmartKnob,
 	slitherFrequencySmartKnob,
 	slitherTypeSmartKnob;
 BlockSuperSawOsc superSaws[ NUM_VOICES ];
@@ -108,17 +108,25 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		float thisModCutoffValue = modCutoffValue + ( pounceValue * pounceHowlModValue );
 		superSaws[ currentVoice ].SetDrift( fclamp( thisModDriftValue, 0.f, 0.999 ) );
 		superSaws[ currentVoice ].SetShift( fclamp( thisModShiftValue, 0.f, 0.999 ) );
-		int filterBaseNote = midiNotes[ currentVoice ] - 24;
-		if( filterBaseNote < 0 ) filterBaseNote = 0;
-		float filterBaseFreq = mtof( filterBaseNote );
-		float calc = exp2f( thisModCutoffValue * 14.288 );
-		filters[ currentVoice ].SetFreq( fclamp( calc + filterBaseFreq, 0.f, 20000.f );
-		combFilters[ currentVoice ].SetFreq( fclamp( calc, 20.f, 10000.f ) );
+		// TODO REVISIT HOW WE'RE SETTING FILTER CUTOFF
+		// filters[ currentVoice ].SetFreq( fclamp( 
+		// 	exp2f( thisModCutoffValue * 14.288 ) + 
+		// 	mtof( midiNotes[ currentVoice ] - 24 ), 
+		// 	0.f, 
+		// 	20000.f 
+		// ) );
+		float cutoffFreq = fmap( 
+			thisModCutoffValue,
+			1.0,
+			fclamp( midiFreqs[ currentVoice ] * 16.f, 0.f, 20000.f )
+		);
+		filters[ currentVoice ].SetFreq( fclamp( cutoffFreq, 0.f, 20000.f ) );
+		combFilters[ currentVoice ].SetFreq( fclamp( cutoffFreq, 20.f, 10000.f ) );
 		float ampModValue = fclamp(
-			modClawsValue + ( fangValue * clawsSmartKnob.GetValue() ),
+			modClawsValue + ( fangValue * fangsModSmartKnob.GetValue() ),
 			0.f,
 			1.f 
-		) * ( 1.f / sqrt( NUM_VOICES ) ); // ADJUST VOLUME BY NUMBER OF VOICES		
+		) * voicesGainStageAdjust;
 		float mixedSignalBuffer[ size ]; // ONCE ALL THE MODS ARE ASSIGNED, DEAL WITH THE AUDIO BUFFERS
 		superSaws[ currentVoice ].Process( mixedSignalBuffer, size );
 		float subSampleBuffer[ size ]; // GET SUBOSC SIGNALS AND PUT THEM IN THE SUBOSC BUFFER
@@ -158,8 +166,7 @@ void handleKnobs(){
 	float howlKnobValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX1, MUX1_HOWL );
 	filterCutoffSmartKnob.Update( howlKnobValue );
 	filterTypeSmartKnob.Update( howlKnobValue );
-	float resKnobValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX1, MUX1_RES );
-	filterResSmartKnob.Update( resKnobValue );
+	resValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX1, MUX1_RES );
 	driveValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX1, MUX1_DRIVE );
 	pounceAttackValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX1, MUX1_ATTACK );
 	pounceSustainValue = 1.0 - hw.adc.GetMuxFloat( ADC_MUX1, MUX1_SUSTAIN );
@@ -179,6 +186,7 @@ void handleKnobs(){
 	fangsDecayValue = 1.0 - hw.adc.GetFloat( ADC_FR );
 	float clawsValue = 1.0 - hw.adc.GetFloat( ADC_CLAWS );
 	clawsSmartKnob.Update( clawsValue );
+	fangsModSmartKnob.Update( clawsValue );
 	superSawMixMod = fmap( 1.0 - subMixSmartKnob.GetValue(), 0.8, 1.0 );
 }
 void updateLfoWave(){
@@ -263,8 +271,8 @@ void handleSmartKnobSwitching(){
 		subTypeSmartKnob.Deactivate();
 		filterCutoffSmartKnob.Activate();
 		filterTypeSmartKnob.Deactivate();
-		filterResSmartKnob.Activate();
 		clawsSmartKnob.Activate();
+		fangsModSmartKnob.Deactivate();
 		slitherFrequencySmartKnob.Activate();
 		slitherTypeSmartKnob.Deactivate();
 	} else {
@@ -272,19 +280,17 @@ void handleSmartKnobSwitching(){
 		subTypeSmartKnob.Activate();
 		filterCutoffSmartKnob.Deactivate();
 		filterTypeSmartKnob.Activate();
-		filterResSmartKnob.Deactivate();
 		clawsSmartKnob.Deactivate();
+		fangsModSmartKnob.Activate();
 		slitherFrequencySmartKnob.Deactivate();
 		slitherTypeSmartKnob.Activate();
 	}
 }
 void updateFilters(){
 	currentFilterMode = filterTypeSmartKnob.GetValue() * FILTER_MODES_COUNT;
-	// TODO: DO WE WANT RES TO GO TO 100?
-	float resValue = fmap( filterResSmartKnob.GetValue(), 0.f, 0.85 );
 	for( int i = 0; i < NUM_VOICES; i++ ){
 		filters[ i ].SetRes( resValue );
-		combFilters[ i ].SetRevTime( fmap( filterResSmartKnob.GetValue(), 0.f, 1.0 ) );
+		combFilters[ i ].SetRevTime( fmap( resValue, 0.f, 1.0 ) );
 	}
 }
 void updatePounces(){
@@ -295,7 +301,7 @@ void updatePounces(){
 		pounces[ i ].SetReleaseTime( fmap( pounceDecayValue, 0.005f, 4.f ) );
 	}
 }
-void updateAmpEnvs(){
+void updateFangs(){
 	for( int i = 0; i < NUM_VOICES; i++ ){
 		fangs[ i ].SetAttackTime( fmap( fangsAttackValue, 0.005f, 4.f ) );
 		fangs[ i ].SetSustainLevel( fangsSustainValue );
@@ -308,8 +314,8 @@ void initSmartKnobs(){
 	subTypeSmartKnob.Init( false, 0.f );
 	filterCutoffSmartKnob.Init( true, 0.5f );
 	filterTypeSmartKnob.Init( false, 0.f );
-	filterResSmartKnob.Init( true, 0.f );
 	clawsSmartKnob.Init( true, 0.f );
+	fangsModSmartKnob.Init( false, 1.f );
 	slitherFrequencySmartKnob.Init( true, 0.5f );
 	slitherTypeSmartKnob.Init( false, 0.f );
 }
@@ -321,7 +327,7 @@ void initDsp(){
 		int combfilterBufferLength = sizeof( combFilterBuffers[ i ] ) / sizeof( combFilterBuffers[ i ][ 0 ] );
 		for( int j = 0; j < combfilterBufferLength; j++ ) combFilterBuffers[ i ][ j ] = 0.f;
 		combFilters[ i ].Init( SAMPLE_RATE, combFilterBuffers[ i ], combfilterBufferLength );
-		// TODO: MAP COMB FILTER PERIOD TO SOMETHING?
+		// TODO MAP COMB FILTER PERIOD TO SOMETHING?
 		combFilters[ i ].SetPeriod( 2.0 ); // FOR NOW, THIS IS A FIXED VALUE = THE MAX BUFFER SIZE
 		pounces[ i ].Init( SAMPLE_RATE, 32 );
 		fangs[ i ].Init( SAMPLE_RATE, 32 );
@@ -335,11 +341,11 @@ void updateLfo(){
 }
 int main(){
 	hw.Init();
-	hw.SetAudioBlockSize( sampleBlockSize ); // number of samples handled per callback
+	hw.SetAudioBlockSize( sampleBlockSize ); // SET THE NUMBER OF SAMPLES HANDLED PER BLOCK
 	hw.SetAudioSampleRate( SaiHandle::Config::SampleRate::SAI_48KHZ );
 	MidiUsbHandler::Config midiConfig;
 	midiConfig.transport_config.periph = MidiUsbTransport::Config::INTERNAL;
-	midi.Init( midiConfig );
+	midi.Init( midiConfig );	
 	initSmartKnobs();
 	initDsp();
 	initAdc();
@@ -349,7 +355,7 @@ int main(){
 		handleMidi();
 		for( int i = 0; i < NUM_VOICES; i++ ){
 			midiFreqs[ i ] = mtof( midiNotes[ i ] );
- 			superSaws[ i ].SetFreq( midiFreqs[ i ] );
+			superSaws[ i ].SetFreq( midiFreqs[ i ] );
 			subOscs[ i ].SetFreq( midiFreqs[ i ] / ( subOscOctave + 1 ) );
 		}
 		modeSwitch.Debounce();
@@ -360,9 +366,10 @@ int main(){
 		handleKnobs();
 		updateLfo();
 		updatePounces();
-		updateAmpEnvs();		
+		updateFangs();		
 		updateSubOscWave();
 		updateFilters();
+		hw.SetLed( operationMode );
 		System::Delay( 1 );
 	}
 }

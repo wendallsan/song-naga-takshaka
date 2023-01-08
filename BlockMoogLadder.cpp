@@ -60,6 +60,7 @@ void BlockMoogLadder::Process( float *buffer, size_t size ){
             interp += kInterpolationRecip;
         }
         oldinput_ = buffer[ i ];
+        buffer[ i ] = total;
     }
 }
 void BlockMoogLadder::SetFreq(float freq){
