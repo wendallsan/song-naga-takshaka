@@ -117,8 +117,9 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		// ) );
 		float cutoffFreq = fmap( 
 			thisModCutoffValue,
-			1.0,
-			fclamp( midiFreqs[ currentVoice ] * 16.f, 0.f, 20000.f )
+			0.f,
+			fclamp( midiFreqs[ currentVoice ] * 16.f, 0.f, 20000.f ),
+			Mapping::EXP
 		);
 		filters[ currentVoice ].SetFreq( fclamp( cutoffFreq, 0.f, 20000.f ) );
 		combFilters[ currentVoice ].SetFreq( fclamp( cutoffFreq, 20.f, 10000.f ) );
