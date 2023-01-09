@@ -6,7 +6,7 @@ using namespace daisy;
 DaisySeed hw;
 float driftValue,
     lookupResult,
-	detuneLookupTable[ CURVE_POINTS ] = DETUNE_LOOKUP_TABLE;
+	detuneLookupTable[ CURVE_POINTS ] = DETUNE_CURVE;
 int detuneKnobCurveIndex;
 enum AdcChannel { driftKnob, ADC_CHANNELS_COUNT };
 float lookup( float knobAmount ){
