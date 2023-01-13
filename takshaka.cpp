@@ -55,14 +55,16 @@ float combFilterBuffers[ NUM_VOICES ][ 9600 ],
 	pounceDecayValue,
 	fangsAttackValue,
 	fangsSustainValue,
-	fangsDecayValue;
+	fangsDecayValue,
+	lastRandLfoValue = 0.f;
 int midiNotes[ NUM_VOICES ] = { ROOT_MIDI_NOTE, ROOT_MIDI_NOTE, ROOT_MIDI_NOTE, ROOT_MIDI_NOTE },
 	currentFilterMode = FILTER_MODE_LP,
 	subOscOctave = 1,
 	nextVoice = 0;
 bool envGates[ NUM_VOICES ] = { false, false, false, false },
 	operationMode = OP_MODE_NORMAL,
-	lastOperationMode = OP_MODE_NORMAL;
+	lastOperationMode = OP_MODE_NORMAL,
+	randLfoEnabled = false;
 DaisySeed hw;
 MidiUsbHandler midi;
 Switch modeSwitch;
@@ -86,7 +88,13 @@ void filterSignal( int i, float *buff, size_t size ){
 	else filters[ i ].Process( buff, size );
 }
 void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){	
-	float lfoValue = lfo.Process(); // PROCESS LFO FIRST
+	float lfoValue = lfo.Process(); // PROCESS LFO FIRST	
+	if( randLfoEnabled ){
+		if( lfo.IsEOC() ){
+			lfoValue = ( ( (float) rand() / RAND_MAX ) * 2.f ) - 1.f;
+			lastRandLfoValue = lfoValue;
+		} else lfoValue = lastRandLfoValue;
+	}
 	// SET INITIAL MOD VALUES FOR CONTROLS AFFECTED BY THE LFO
 	float modDriftValue = driftValue +
 		lfoValue * ( ( lfoValue * slitherDriftModValue ) - ( slitherDriftModValue / 2.f ) );
@@ -118,7 +126,7 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		float cutoffFreq = fmap( 
 			thisModCutoffValue,
 			0.f,
-			fclamp( midiFreqs[ currentVoice ] * 16.f, 0.f, 20000.f ),
+			fclamp( midiFreqs[ currentVoice ] * 32.f, 0.f, 20000.f ),
 			Mapping::EXP
 		);
 		filters[ currentVoice ].SetFreq( fclamp( cutoffFreq, 0.f, 20000.f ) );
@@ -195,21 +203,27 @@ void updateLfoWave(){
 	switch( lfoWave ){
 		case 0:
 			lfo.SetWaveform( lfo.WAVE_SIN );
+			randLfoEnabled = false;
 			break;
 		case 1:
 			lfo.SetWaveform( lfo.WAVE_TRI );
+			randLfoEnabled = false;
 			break;
 		case 2:
 			lfo.SetWaveform( lfo.WAVE_SAW );
+			randLfoEnabled = false;
 			break;
 		case 3:
 			lfo.SetWaveform( lfo.WAVE_RAMP );
+			randLfoEnabled = false;
 			break;
 		case 4:
 			lfo.SetWaveform( lfo.WAVE_SQUARE );
+			randLfoEnabled = false;
 			break;
-		case 5: // TODO IMPLEMENT RANDOM
-			lfo.SetWaveform( lfo.WAVE_SIN );
+		case 5:
+			lfo.SetWaveform( lfo.WAVE_SQUARE );
+			randLfoEnabled = true;
 			break;
 	}
 }
@@ -340,10 +354,10 @@ void updateLfo(){
 	updateLfoWave();
 	lfo.SetFreq( fmap( slitherFrequencySmartKnob.GetValue(), 0.02f, 20.f ) );
 }
-int main(){
+int main(){	
 	hw.Init();
 	hw.SetAudioBlockSize( sampleBlockSize ); // SET THE NUMBER OF SAMPLES HANDLED PER BLOCK
-	hw.SetAudioSampleRate( SaiHandle::Config::SampleRate::SAI_48KHZ );
+	hw.SetAudioSampleRate( SaiHandle::Config::SampleRate::SAI_48KHZ );		
 	MidiUsbHandler::Config midiConfig;
 	midiConfig.transport_config.periph = MidiUsbTransport::Config::INTERNAL;
 	midi.Init( midiConfig );	
@@ -370,7 +384,6 @@ int main(){
 		updateFangs();		
 		updateSubOscWave();
 		updateFilters();
-		hw.SetLed( operationMode );
 		System::Delay( 1 );
 	}
 }
