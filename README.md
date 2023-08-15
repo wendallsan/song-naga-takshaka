@@ -4,10 +4,12 @@
 
 This project is powered by the [Electro-smith Daisy Seed](https://www.electro-smith.com/daisy/daisy) and the [Simple synthesizer design platform](https://www.synthux.academy/simple).
 
-![Design Concept](https://user-images.githubusercontent.com/1865305/210271459-9fb623e2-b7bb-4864-a163-578dd1ba3338.png)    
+![image](https://github.com/wendallsan/song-naga-takshaka/assets/1865305/709272ee-803f-4fbd-9f69-1dd483d0a34a)
+ 
 Design Concept  
 
-![Functional Diagram](https://user-images.githubusercontent.com/1865305/210268749-e3327497-0a52-40fc-becd-1809ab956572.jpg)  
+![TAKSHAKA Supersaw Synthesizer Flowchart drawio (2)](https://github.com/wendallsan/song-naga-takshaka/assets/1865305/60e15ea7-8139-4ace-8961-fe3a919d36ad)
+
 Functional Diagram  
 
 ## Features
