@@ -4,7 +4,8 @@
 
 This project is powered by the [Electro-smith Daisy Seed](https://www.electro-smith.com/daisy/daisy) and the [Simple synthesizer design platform](https://www.synthux.academy/simple).
 
-![image](https://github.com/wendallsan/song-naga-takshaka/assets/1865305/416f8104-7f57-4d07-8a61-c6e70e57bf0b)
+![image](https://github.com/wendallsan/song-naga-takshaka/assets/1865305/8390fab3-60ab-4401-9acf-a280e3c0ffd9)
+
 
  
 Design Concept  
