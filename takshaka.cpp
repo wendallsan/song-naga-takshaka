@@ -75,26 +75,35 @@ SmartKnob subMixSmartKnob,
 	clawsSmartKnob,
 	fangsModSmartKnob,
 	slitherFrequencySmartKnob,
-	slitherTypeSmartKnob;
+	slitherTypeSmartKnob,
+	pounceAttackSmartKnob,
+	ampEnvAttackSmartKnob,
+	pounceSustainSmartKnob,
+	ampEnvSustainSmartKnob,
+	pounceReleaseSmartKnob,
+	ampEnvReleaseSmartKnob;
 BlockSuperSawOsc superSaws[ NUM_VOICES ];
 BlockOscillator subOscs[ NUM_VOICES ];
 Oscillator lfo;
 BlockMoogLadder filters[ NUM_VOICES ];
 BlockComb combFilters[ NUM_VOICES ];
-Adsr pounces[ NUM_VOICES ], fangs[ NUM_VOICES ];
+Adsr pounces[ NUM_VOICES ], ampEnvs[ NUM_VOICES ];
 const size_t sampleBlockSize = 16;
 void filterSignal( int i, float *buff, size_t size ){
 	if( currentFilterMode == FILTER_MODE_COMB ) combFilters[ i ].Process( buff, size );
 	else filters[ i ].Process( buff, size );
 }
-void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){	
-	float lfoValue = lfo.Process(); // PROCESS LFO FIRST	
+float handleLfo(){
+	float lfoValue;
 	if( randLfoEnabled ){
 		if( lfo.IsEOC() ){
 			lfoValue = ( ( (float) rand() / RAND_MAX ) * 2.f ) - 1.f;
 			lastRandLfoValue = lfoValue;
 		} else lfoValue = lastRandLfoValue;
-	}
+	} else return lfo.Process();
+}
+void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size ){	
+	float lfoValue = handleLfo();
 	// SET INITIAL MOD VALUES FOR CONTROLS AFFECTED BY THE LFO
 	float modDriftValue = driftValue +
 		lfoValue * ( ( lfoValue * slitherDriftModValue ) - ( slitherDriftModValue / 2.f ) );
@@ -109,7 +118,7 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 	for( int currentVoice = 0; currentVoice < NUM_VOICES; currentVoice++ ){
 		// GET THE ENV VALUES
 		float pounceValue = pounces[ currentVoice ].Process( envGates[ currentVoice ] );
-		float fangValue = fangs[ currentVoice ].Process( envGates[ currentVoice ] );
+		float fangValue = ampEnvs[ currentVoice ].Process( envGates[ currentVoice ] );
 		// APPLY POUNCE ENV TO MODDABLE VALUES
 		float thisModDriftValue = modDriftValue + ( pounceValue * pounceDriftModValue );
 		float thisModShiftValue = modShiftValue + ( pounceValue * pounceShiftModValue );
@@ -151,7 +160,18 @@ void AudioCallback( AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, 
 		for( size_t currentSample = 0; currentSample < size; currentSample++ )
 			output[ currentSample ] += SoftClip( mixedSignalBuffer[ currentSample ] * ampModValue * voicesGainStageAdjust );
 	}
-	for( size_t i = 0; i < size; i++ ) out[ 0 ][ i ] = out [ 1 ][ i ] = output[ i ];
+	// TODO: NICK SAYS:
+	// "you can always throw in a for loop when you need to do the delay part in the chain
+	// keep in mind if you have feedback into the delay line, if you do it block-based, 
+	// there will be an extra N samples of delay in the feedback loop (minimum feedback 
+	// time would be the block size)"
+	for( size_t i = 0; i < size; i++ ){
+
+		out[ 0 ][ i ] = out [ 1 ][ i ] = output[ i ];
+	} 
+
+
+
 }
 void handleMidi(){
 	midi.Listen();
@@ -318,10 +338,10 @@ void updatePounces(){
 }
 void updateFangs(){
 	for( int i = 0; i < NUM_VOICES; i++ ){
-		fangs[ i ].SetAttackTime( fmap( fangsAttackValue, 0.005f, 4.f ) );
-		fangs[ i ].SetSustainLevel( fangsSustainValue );
-		fangs[ i ].SetDecayTime( fmap( fangsDecayValue, 0.005f, 4.f ) );
-		fangs[ i ].SetReleaseTime( fmap( fangsDecayValue, 0.005f, 4.f ) );
+		ampEnvs[ i ].SetAttackTime( fmap( fangsAttackValue, 0.005f, 4.f ) );
+		ampEnvs[ i ].SetSustainLevel( fangsSustainValue );
+		ampEnvs[ i ].SetDecayTime( fmap( fangsDecayValue, 0.005f, 4.f ) );
+		ampEnvs[ i ].SetReleaseTime( fmap( fangsDecayValue, 0.005f, 4.f ) );
 	}
 }
 void initSmartKnobs(){
@@ -333,6 +353,12 @@ void initSmartKnobs(){
 	fangsModSmartKnob.Init( false, 1.f );
 	slitherFrequencySmartKnob.Init( true, 0.5f );
 	slitherTypeSmartKnob.Init( false, 0.f );
+	pounceAttackSmartKnob.Init( true, 0.f );
+	ampEnvAttackSmartKnob.Init( false, 0.f );
+	pounceSustainSmartKnob.Init( true, 0.5f);
+	ampEnvSustainSmartKnob.Init( false, 0.5f);
+	pounceReleaseSmartKnob.Init( true, 0.5f);
+	ampEnvReleaseSmartKnob.Init( false, 0.5f );
 }
 void initDsp(){
 	for( int i = 0; i < NUM_VOICES; i++ ){
@@ -345,7 +371,7 @@ void initDsp(){
 		// TODO MAP COMB FILTER PERIOD TO SOMETHING?
 		combFilters[ i ].SetPeriod( 2.0 ); // FOR NOW, THIS IS A FIXED VALUE = THE MAX BUFFER SIZE
 		pounces[ i ].Init( SAMPLE_RATE, 32 );
-		fangs[ i ].Init( SAMPLE_RATE, 32 );
+		ampEnvs[ i ].Init( SAMPLE_RATE, 32 );
 	}
 	lfo.Init( SAMPLE_RATE / 32.f );
 	lfo.SetWaveform( lfo.WAVE_SIN );
@@ -381,7 +407,7 @@ int main(){
 		handleKnobs();
 		updateLfo();
 		updatePounces();
-		updateFangs();		
+		// updateFangs();		
 		updateSubOscWave();
 		updateFilters();
 		System::Delay( 1 );

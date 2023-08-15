@@ -1,6 +1,6 @@
 #include "daisy_seed.h"
 #include "BlockSuperSawOsc.h"
-#include "BlockOscillator.h"
+#include "BlockSawOsc.h"
 #include "BlockAtone.h"
 #include "daisysp.h"
 #include <algorithm>
@@ -10,7 +10,6 @@ namespace daisysp {
         freq_ = 220.0; // INIT FREQ TO 220HZ
         for( int i = 0; i < NUMBER_OF_SAWS; i++ ){
             superSaws_[ i ].Init( sampleRate_ );
-            superSaws_[ i ].SetWaveform( superSaws_[ i ].WAVE_SAW );
             /*
             RANDOMIZE PHASE AND SAVE FOR LATER USAGE-- 
             WE'LL EVENTUALLY WANT TO CHANGE PHASE WITH EACH NEW NOTE USING PhaseAdd()

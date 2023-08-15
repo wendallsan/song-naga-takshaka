@@ -2,7 +2,7 @@
 TARGET = takshaka
 
 # Sources
-CPP_SOURCES = takshaka.cpp BlockSuperSawOsc.cpp SmartKnob.cpp BlockComb.cpp BlockOscillator.cpp BlockAtone.cpp BlockMoogLadder.cpp
+CPP_SOURCES = takshaka.cpp BlockSuperSawOsc.cpp SmartKnob.cpp BlockComb.cpp BlockOscillator.cpp BlockAtone.cpp BlockMoogLadder.cpp BlockSawOsc.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../../libDaisy/

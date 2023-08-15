@@ -3,7 +3,7 @@
 #include "daisy_seed.h"
 #include "daisysp.h"
 #include "BlockAtone.h"
-#include "BlockOscillator.h"
+#include "BlockSawOsc.h"
 #ifdef __cplusplus
 /* 
 IMPLEMENTED USING DETAILS FROM:
@@ -39,7 +39,7 @@ namespace daisysp {
                 ampAmounts_[ NUMBER_OF_SAWS ] = AMP_AMOUNTS,
                 detuneLookupTable_[ CURVE_POINTS ] = DRIFT_LOOKUP_TABLE,
                 ampLookupTable_[ CURVE_POINTS ] = SHIFT_LOOKUP_TABLE;
-            BlockOscillator superSaws_[ NUMBER_OF_SAWS ];
+            BlockSawOsc superSaws_[ NUMBER_OF_SAWS ];
             BlockATone hpf_;
             int detuneKnobCurveIndex_, 
                 intensityKnobCurveIndex_;
