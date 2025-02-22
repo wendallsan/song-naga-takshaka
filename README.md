@@ -2,11 +2,12 @@
 
 ### Supersaw desktop synthesizer by Song Naga
 
-This project is powered by the [Electro-smith Daisy Seed](https://www.electro-smith.com/daisy/daisy) and the [Simple synthesizer design platform](https://www.synthux.academy/simple).
+This project is powered by the [Electro-smith Daisy Seed](https://www.electro-smith.com/daisy/daisy) and was developed using the the [Simple synthesizer design platform](https://www.synthux.academy/simple).
 
-![image](https://github.com/wendallsan/song-naga-takshaka/assets/1865305/ddd7d966-1544-4a60-88c1-5651f8152798)
- 
-Design Concept  
+<img width="1001" alt="image" src="https://github.com/user-attachments/assets/ee726df8-112d-4a92-88f9-ab15783c1485" />
+
+
+Current Design Concept  
 
 ![TAKSHAKA Supersaw Synthesizer Flowchart drawio (2)](https://github.com/wendallsan/song-naga-takshaka/assets/1865305/60e15ea7-8139-4ace-8961-fe3a919d36ad)
 
