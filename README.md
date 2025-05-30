@@ -16,17 +16,18 @@ Functional Diagram
 
 ## Features
 
-- **Supersaw Oscillator** modelled on the Roland JP-8000  
-- **DRIFT** and **SHIFT** knobs adjust supersaw detune and amount of effect
-- **Suboscillator** that can be mixed in with the main main signal via the **GROWL** knob.  Waveform and octave can be selected while in ALT MODE by adjusting the **GROWL** knob.    
-- **LOW PASS FILTER** can be controlled by the **HOWL** section, including Frequency Control via the **HOWL** knob, resonance via the "R" knob, and drive with the "D" knob.  
-- **COMB FILTER** can be controlled by the **HOWL** section, including Frequency via the **HOWL** knob and Decay Time via the "R" knob.  
-- **FILTER MODE** can be set by adjusting the **HOWL** knob while in ALT MODE.  
-- **FANGS** section controls the amp envelope.  Fangs Mod amount sets the envelope's effect on the amp, and is set by adjusting the FANGS "A" knob in ALT MODE.  
-- **POUNCE** section controls a routable envelope, which can modulate **DRIFT**, **SHIFT** and **HOWL**.  
-- **SLITHER** section provides a routable LFO, which can modulate **DRIFT,** **SHIFT,** **HOWL**, or **CLAWS**.  LFO rate is set via the **SLITHER** knob and LFO Waveform can be set via the **SLITHER** knob while in ALT MODE.  
-- **Full MIDI Control** of all parameters via USB-over-MIDI input.  USB also powers the instrument.  
 - **4 Note Polyphony**  
+- **SupaSaw Oscillator** is modelled on the famous Roland JP-8000 preset.
+- **DRIFT** and **SHIFT** knobs adjust supersaw detune and volume levels of the oscillator stack that produces the SupaSaw effect.
+- **Suboscillator** that can be mixed in with the main main signal via the **SUB** knob.  Waveform and octave can be set via the **SUB OCT** and the **SUB WAVE** switches.
+- **VENOM** knob distorts the combined SupaSaw and Sub oscillator signals before passing it on to the filters.
+- **LOW PASS FILTER** provides Frequency Control via the **GROWL** knob and resonance via the **REZ** knob.  Keyboard tracking can be enabled using the **GROWL KEYTRACK** switch.
+- **COMB FILTER** provides delay time control via the **HOWL** knob and feedback amount via the **FDBK** knob.  Keyboard tracking can be enabled using the **HOWL KEYTRACK** switch.
+- **FILTER ORDER** can be switched using the **FILTER ORDER** switch.
+- **POUNCE** section provides an ADSR envelope that can be routed to multiple destinations on the synth.
+- **SLITHER** section provides a LFO that can be routed to multiple destinations on the synth.  Waveshape of the LFO can be set using the **SLITHER SELECT** switches.
+- **CLAWS** section provides a dedicated ADSR envelope and VCA for the output signal.   
+- **Full MIDI Control** of all parameters via USB-over-MIDI input.  USB also powers the instrument.
 - **Stereo Output**  
 
 ### About the Supersaw Oscillator  
