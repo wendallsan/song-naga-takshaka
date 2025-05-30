@@ -9,7 +9,8 @@ This project is powered by the [Electro-smith Daisy Seed](https://www.electro-sm
 
 Current Design Concept  
 
-![TAKSHAKA Supersaw Synthesizer Flowchart drawio (2)](https://github.com/wendallsan/song-naga-takshaka/assets/1865305/60e15ea7-8139-4ace-8961-fe3a919d36ad)
+![TAKSHAKA Supersaw Synthesizer Flowchart drawio](https://github.com/user-attachments/assets/ab366624-8888-4e36-8fee-69feb5ac0f69)
+
 
 Functional Diagram  
 
