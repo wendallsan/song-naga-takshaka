@@ -16,7 +16,8 @@ Functional Diagram
 
 ## Features
 
-- **4 Note Polyphony**  
+- **4 Note Polyphony**
+- **Full MIDI Control** of all parameters via USB-over-MIDI input.
 - **SupaSaw Oscillator** is modelled on the famous Roland JP-8000 preset.
 - **DRIFT** and **SHIFT** knobs adjust supersaw detune and volume levels of the oscillator stack that produces the SupaSaw effect.
 - **Suboscillator** that can be mixed in with the main main signal via the **SUB** knob.  Waveform and octave can be set via the **SUB OCT** and the **SUB WAVE** switches.
@@ -27,7 +28,6 @@ Functional Diagram
 - **POUNCE** section provides an ADSR envelope that can be routed to multiple destinations on the synth.
 - **SLITHER** section provides a LFO that can be routed to multiple destinations on the synth.  Waveshape of the LFO can be set using the **SLITHER SELECT** switches.
 - **CLAWS** section provides a dedicated ADSR envelope and VCA for the output signal.   
-- **Full MIDI Control** of all parameters via USB-over-MIDI input.  USB also powers the instrument.
 
 ### About the Supersaw Oscillator  
 The Supersaw Oscillator used in **Takshaka** is based on the thesis ["How to Emulate the Super Saw"](https://forum.orthogonaldevices.com/uploads/short-url/rLjREzRcZvvK2527rFnTGvuwY1b.pdf) written by Adam Szabo in 2010.
