@@ -30,4 +30,4 @@ Functional Diagram
 - **CLAWS** section provides a dedicated ADSR envelope and VCA for the output signal.   
 
 ### About the Supersaw Oscillator  
-The Supersaw Oscillator used in **Takshaka** is based on the thesis ["How to Emulate the Super Saw"](https://forum.orthogonaldevices.com/uploads/short-url/rLjREzRcZvvK2527rFnTGvuwY1b.pdf) written by Adam Szabo in 2010.
+The Supersaw Oscillator used in **Takshaka** is based on the thesis ["How to Emulate the Super Saw"](https://adamszabo.com/internet/adam_szabo_how_to_emulate_the_super_saw.pdf) written by Adam Szabo in 2010.
